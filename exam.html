@@ -81,9 +81,39 @@
         document.getElementById("infoStatus").innerText = student.status;
       });
 
-    function startExam() {
-      alert("Bước tiếp theo sẽ vào màn hình làm bài thi");
-    }
+   <script>
+const MAX_EXAM_PER_DAY = 3; // 🔴 đổi số này nếu muốn
+
+function getToday() {
+  const d = new Date();
+  return d.toISOString().split("T")[0];
+}
+
+function startExam() {
+  const today = getToday();
+
+  db.collection("exam_logs")
+    .where("code", "==", code)
+    .where("date", "==", today)
+    .get()
+    .then(snapshot => {
+      if (snapshot.size >= MAX_EXAM_PER_DAY) {
+        alert("Bạn đã vượt quá số lượt thi trong ngày");
+        return;
+      }
+
+      db.collection("exam_logs").add({
+        code: code,
+        date: today,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        alert("Bắt đầu làm bài thi");
+        // bước sau sẽ chuyển sang trang thi thật
+      });
+    });
+}
+</script>
+
 
     function logout() {
       localStorage.clear();
