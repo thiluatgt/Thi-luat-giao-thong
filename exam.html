@@ -6,13 +6,74 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <h2>TRANG HỌC VIÊN</h2>
 
-<h2>TRANG THI LUẬT GIAO THÔNG</h2>
+  <div id="studentInfo" style="border:1px solid #ccc;padding:15px;margin-bottom:20px;">
+    <p><b>Mã học viên:</b> <span id="infoCode"></span></p>
+    <p><b>Tên học viên:</b> <span id="infoName"></span></p>
+    <p><b>Trạng thái:</b> <span id="infoStatus"></span></p>
+  </div>
 
-<p id="welcome"></p>
+  <button onclick="startExam()" style="font-size:18px;padding:12px 20px;background:green;color:white;border:none;border-radius:5px;">
+    ▶ TIẾP TỤC THI
+  </button>
 
-<button onclick="startExam()">TIẾP TỤC THI</button>
-<button onclick="logout()">ĐĂNG XUẤT</button>
+  <br><br>
+
+  <button onclick="logout()" style="padding:8px 15px;">
+    Đăng xuất
+  </button>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+  apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+  authDomain: "thi-luat-giao-thong.firebaseapp.com",
+  projectId: "thi-luat-giao-thong",
+  storageBucket: "thi-luat-giao-thong.firebasestorage.app",
+  messagingSenderId: "173046681456",
+  appId: "1:173046681456:web:33da411c508ee243a149b5"
+};
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const code = localStorage.getItem("studentCode");
+
+    if (!code) {
+      alert("Bạn chưa đăng nhập");
+      window.location.href = "index.html";
+    }
+
+    db.collection("students")
+      .where("code", "==", code)
+      .get()
+      .then(snapshot => {
+        if (snapshot.empty) {
+          alert("Không tìm thấy thông tin học viên");
+          return;
+        }
+
+        const student = snapshot.docs[0].data();
+
+        document.getElementById("infoCode").innerText = student.code;
+        document.getElementById("infoName").innerText = student.name;
+        document.getElementById("infoStatus").innerText = student.status;
+      });
+
+    function startExam() {
+      alert("Bước tiếp theo sẽ vào màn hình làm bài thi");
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
 
 <script>
   const userType = localStorage.getItem("userType");
