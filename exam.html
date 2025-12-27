@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Trang thi</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>TRANG THI LUẬT GIAO THÔNG</h2>
+
+<p id="welcome"></p>
+
+<button onclick="startExam()">TIẾP TỤC THI</button>
+<button onclick="logout()">ĐĂNG XUẤT</button>
+
+<script>
+  const userType = localStorage.getItem("userType");
+  const studentCode = localStorage.getItem("studentCode");
+
+  if (!userType) {
+    window.location.href = "index.html";
+  }
+
+  if (userType === "student") {
+    document.getElementById("welcome").innerText =
+      "Xin chào học viên: " + studentCode;
+  } else {
+    document.getElementById("welcome").innerText =
+      "Bạn đang thi với tư cách KHÁCH";
+  }
+
+  function startExam() {
+    alert("Bước tiếp theo sẽ hiển thị đề thi");
+  }
+
+  function logout() {
+    localStorage.clear();
+    window.location.href = "index.html";
+  }
+</script>
+
+</body>
+</html>
