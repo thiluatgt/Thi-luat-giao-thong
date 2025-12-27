@@ -41,7 +41,7 @@ const firebaseConfig = {
 
   <script>
 function loginStudent() {
-  const code = document.getElementById("studentCode").value.trim();
+  const code = document.getElementById("studentCode").value.trim().toUpperCase();
   if (!code) {
     alert("Vui lòng nhập mã học viên");
     return;
