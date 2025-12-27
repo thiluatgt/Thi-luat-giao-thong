@@ -40,16 +40,40 @@ const firebaseConfig = {
   </div>
 
   <script>
-    function loginStudent() {
-      const code = document.getElementById("studentCode").value;
-      if (!code) {
-        alert("Vui lòng nhập mã học viên");
+function loginStudent() {
+  const code = document.getElementById("studentCode").value.trim();
+  if (!code) {
+    alert("Vui lòng nhập mã học viên");
+    return;
+  }
+
+  db.collection("students")
+    .where("code", "==", code)
+    .get()
+    .then(snapshot => {
+      if (snapshot.empty) {
+        alert("Mã học viên không tồn tại");
         return;
       }
+
+      const student = snapshot.docs[0].data();
+      if (student.status !== "Hoạt động") {
+        alert("Tài khoản đang bị khóa");
+        return;
+      }
+
       localStorage.setItem("userType", "student");
-      localStorage.setItem("studentCode", code);
+      localStorage.setItem("studentCode", student.code);
+      localStorage.setItem("studentName", student.name);
+
       window.location.href = "exam.html";
-    }
+    })
+    .catch(err => {
+      alert("Lỗi kết nối Firebase");
+      console.error(err);
+    });
+}
+</script>
 
     function loginGuest() {
       localStorage.setItem("userType", "guest");
