@@ -5,6 +5,25 @@
   <title>Thi Luật Giao Thông</title>
   <link rel="stylesheet" href="style.css">
 </head>
+  <!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+  // Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+  authDomain: "thi-luat-giao-thong.firebaseapp.com",
+  projectId: "thi-luat-giao-thong",
+  storageBucket: "thi-luat-giao-thong.firebasestorage.app",
+  messagingSenderId: "173046681456",
+  appId: "1:173046681456:web:33da411c508ee243a149b5"
+};
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
+
 <body>
 
   <h1>HỆ THỐNG THI LUẬT GIAO THÔNG</h1>
