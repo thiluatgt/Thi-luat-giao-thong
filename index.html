@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Thi Luật Giao Thông</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <h1>HỆ THỐNG THI LUẬT GIAO THÔNG</h1>
+
+  <div class="box">
+    <h2>Đăng nhập học viên</h2>
+    <input type="text" id="studentCode" placeholder="Nhập mã học viên">
+    <button onclick="loginStudent()">Đăng nhập</button>
+  </div>
+
+  <div class="box">
+    <h2>Đăng nhập khách</h2>
+    <button onclick="loginGuest()">Vào thi với tư cách khách</button>
+  </div>
+
+  <script>
+    function loginStudent() {
+      const code = document.getElementById("studentCode").value;
+      if (!code) {
+        alert("Vui lòng nhập mã học viên");
+        return;
+      }
+      localStorage.setItem("userType", "student");
+      localStorage.setItem("studentCode", code);
+      window.location.href = "exam.html";
+    }
+
+    function loginGuest() {
+      localStorage.setItem("userType", "guest");
+      window.location.href = "exam.html";
+    }
+  </script>
+
+</body>
+</html>
