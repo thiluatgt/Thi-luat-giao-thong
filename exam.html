@@ -6,7 +6,9 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h2>TRANG HỌC VIÊN</h2>
+
+<h2>TRANG HỌC VIÊN</h2>
+
 <div style="border:1px solid #999;padding:15px;margin-bottom:20px;background:#f9f9f9;">
   <h3>📘 Thông tin bài thi</h3>
   <ul>
@@ -25,75 +27,72 @@
   </ul>
 </div>
 
-  <div id="studentInfo" style="border:1px solid #ccc;padding:15px;margin-bottom:20px;">
-    <p><b>Mã học viên:</b> <span id="infoCode"></span></p>
-    <p><b>Tên học viên:</b> <span id="infoName"></span></p>
-    <p><b>Trạng thái:</b> <span id="infoStatus"></span></p>
-  </div>
+<div id="studentInfo" style="border:1px solid #ccc;padding:15px;margin-bottom:20px;">
+  <p><b>Mã học viên:</b> <span id="infoCode"></span></p>
+  <p><b>Tên học viên:</b> <span id="infoName"></span></p>
+  <p><b>Trạng thái:</b> <span id="infoStatus"></span></p>
+</div>
 
-  <button onclick="startExam()" style="font-size:18px;padding:12px 20px;background:green;color:white;border:none;border-radius:5px;">
-    ▶ TIẾP TỤC THI
-  </button>
+<button onclick="startExam()" style="font-size:18px;padding:12px 20px;background:green;color:white;border:none;border-radius:5px;">
+  ▶ TIẾP TỤC THI
+</button>
 
-  <br><br>
+<br><br>
 
-  <button onclick="logout()" style="padding:8px 15px;">
-    Đăng xuất
-  </button>
+<button onclick="logout()">Đăng xuất</button>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-  <script>
-    const firebaseConfig = {
+<script>
+/* ================== FIREBASE ================== */
+const firebaseConfig = {
   apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
   authDomain: "thi-luat-giao-thong.firebaseapp.com",
   projectId: "thi-luat-giao-thong",
-  storageBucket: "thi-luat-giao-thong.firebasestorage.app",
-  messagingSenderId: "173046681456",
-  appId: "1:173046681456:web:33da411c508ee243a149b5"
 };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-    const code = localStorage.getItem("studentCode");
+/* ================== LOGIN CHECK ================== */
+const studentCode = localStorage.getItem("studentCode");
+const userType = localStorage.getItem("userType");
 
-    if (!code) {
-      alert("Bạn chưa đăng nhập");
-      window.location.href = "index.html";
+if (!studentCode || userType !== "student") {
+  alert("Bạn chưa đăng nhập");
+  window.location.href = "index.html";
+}
+
+/* ================== LOAD STUDENT ================== */
+db.collection("students")
+  .where("code", "==", studentCode)
+  .get()
+  .then(snapshot => {
+    if (snapshot.empty) {
+      alert("Không tìm thấy thông tin học viên");
+      return;
     }
 
-    db.collection("students")
-      .where("code", "==", code)
-      .get()
-      .then(snapshot => {
-        if (snapshot.empty) {
-          alert("Không tìm thấy thông tin học viên");
-          return;
-        }
+    const student = snapshot.docs[0].data();
+    infoCode.innerText = student.code;
+    infoName.innerText = student.name;
+    infoStatus.innerText = student.status;
+  });
 
-        const student = snapshot.docs[0].data();
-
-        document.getElementById("infoCode").innerText = student.code;
-        document.getElementById("infoName").innerText = student.name;
-        document.getElementById("infoStatus").innerText = student.status;
-      });
-
-   <script>
-const MAX_EXAM_PER_DAY = 3; // 🔴 đổi số này nếu muốn
+/* ================== EXAM LIMIT ================== */
+const MAX_EXAM_PER_DAY = 3;
 
 function getToday() {
-  const d = new Date();
-  return d.toISOString().split("T")[0];
+  return new Date().toISOString().split("T")[0];
 }
 
 function startExam() {
   const today = getToday();
 
   db.collection("exam_logs")
-    .where("code", "==", code)
+    .where("code", "==", studentCode)
     .where("date", "==", today)
     .get()
     .then(snapshot => {
@@ -103,49 +102,20 @@ function startExam() {
       }
 
       db.collection("exam_logs").add({
-        code: code,
+        code: studentCode,
         date: today,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       }).then(() => {
-        alert("Bắt đầu làm bài thi");
-        // bước sau sẽ chuyển sang trang thi thật
+        window.location.href = "exam.html"; // trang thi thật
       });
     });
 }
-</script>
 
-
-    function logout() {
-      localStorage.clear();
-      window.location.href = "index.html";
-    }
-  </script>
-</body>
-
-<script>
-  const userType = localStorage.getItem("userType");
-  const studentCode = localStorage.getItem("studentCode");
-
-  if (!userType) {
-    window.location.href = "index.html";
-  }
-
-  if (userType === "student") {
-    document.getElementById("welcome").innerText =
-      "Xin chào học viên: " + studentCode;
-  } else {
-    document.getElementById("welcome").innerText =
-      "Bạn đang thi với tư cách KHÁCH";
-  }
-
-  function startExam() {
-    alert("Bước tiếp theo sẽ hiển thị đề thi");
-  }
-
-  function logout() {
-    localStorage.clear();
-    window.location.href = "index.html";
-  }
+/* ================== LOGOUT ================== */
+function logout() {
+  localStorage.clear();
+  window.location.href = "index.html";
+}
 </script>
 
 </body>
