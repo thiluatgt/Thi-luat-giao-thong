@@ -76,9 +76,9 @@ db.collection("students")
     }
 
     const student = snapshot.docs[0].data();
-    infoCode.innerText = student.code;
-    infoName.innerText = student.name;
-    infoStatus.innerText = student.status;
+    document.getElementById("infoCode").innerText = student.code;
+    document.getElementById("infoName").innerText = student.name;
+    document.getElementById("infoStatus").innerText = student.status;
   });
 
 /* ================== EXAM LIMIT ================== */
@@ -88,46 +88,29 @@ function getToday() {
   return new Date().toISOString().split("T")[0];
 }
 
-<script>
-const MAX_EXAM_PER_DAY = 3; // 🔴 đổi số nếu muốn
-
-function getToday() {
-  const d = new Date();
-  return d.toISOString().split("T")[0];
-}
-
 function startExam() {
   const today = getToday();
 
   db.collection("exam_logs")
-    .where("code", "==", code)
+    .where("code", "==", studentCode)
+    .where("date", "==", today)
     .get()
     .then(snapshot => {
-      let countToday = 0;
-
-      snapshot.forEach(doc => {
-        const log = doc.data();
-        if (log.date === today) {
-          countToday++;
-        }
-      });
-
-      if (countToday >= MAX_EXAM_PER_DAY) {
+      if (snapshot.size >= MAX_EXAM_PER_DAY) {
         alert("❌ Bạn đã vượt quá số lượt thi trong ngày");
         return;
       }
 
       db.collection("exam_logs").add({
-        code: code,
+        code: studentCode,
         date: today,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       }).then(() => {
         alert("✅ Bắt đầu làm bài thi");
-        // bước sau sẽ chuyển sang trang thi thật
+        window.location.href = "exam.html"; // trang thi thật
       });
     });
 }
-</script>
 
 /* ================== LOGOUT ================== */
 function logout() {
