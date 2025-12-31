@@ -8,84 +8,73 @@
 
 <body>
 
-<h1>HỆ THỐNG THI LUẬT GIAO THÔNG</h1>
+<body style="font-family:Arial;background:#f0f2f5;">
 
-<div class="box">
-  <h2>Đăng nhập học viên</h2>
-  <input type="text" id="studentCode" placeholder="Nhập mã học viên">
-  <button onclick="loginStudent()">Đăng nhập</button>
-</div>
+  <div style="
+    width:360px;
+    margin:100px auto;
+    background:#fff;
+    padding:25px;
+    border-radius:8px;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
+  ">
 
-<div class="box">
-  <h2>Đăng nhập khách</h2>
-  <button onclick="loginGuest()">Vào thi với tư cách khách</button>
-</div>
+    <h2 style="text-align:center;margin-bottom:20px;">
+      HỆ THỐNG THI LUẬT GIAO THÔNG
+    </h2>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <!-- ĐĂNG NHẬP HỌC VIÊN -->
+    <label><b>Mã học viên</b></label>
+    <input
+      id="studentCode"
+      type="text"
+      placeholder="Nhập mã học viên"
+      style="width:100%;padding:10px;margin:8px 0 15px 0;"
+    >
 
-<script>
-/* ================== FIREBASE ================== */
-const firebaseConfig = {
-  apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
-  authDomain: "thi-luat-giao-thong.firebaseapp.com",
-  projectId: "thi-luat-giao-thong",
-  storageBucket: "thi-luat-giao-thong.firebasestorage.app",
-  messagingSenderId: "173046681456",
-  appId: "1:173046681456:web:33da411c508ee243a149b5"
-};
+    <button
+      onclick="loginStudent()"
+      style="
+        width:100%;
+        padding:12px;
+        background:#007bff;
+        color:white;
+        border:none;
+        border-radius:5px;
+        font-size:16px;
+      "
+    >
+      Đăng nhập
+    </button>
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+    <hr style="margin:20px 0;">
 
-/* ================== LOGIN STUDENT ================== */
-function loginStudent() {
-  const code = document
-    .getElementById("studentCode")
-    .value
-    .trim()
-    .toUpperCase();
+    <!-- THI THỬ -->
+    <button
+      onclick="loginGuest()"
+      style="
+        width:100%;
+        padding:12px;
+        background:#28a745;
+        color:white;
+        border:none;
+        border-radius:5px;
+        font-size:16px;
+      "
+    >
+      🎯 Thi thử không cần đăng nhập
+    </button>
 
-  if (!code) {
-    alert("Vui lòng nhập mã học viên");
-    return;
-  }
+    <!-- GHI CHÚ -->
+    <p style="font-size:13px;color:#555;margin-top:20px;text-align:center;">
+      Bạn chưa đăng ký mã học viên? Bạn có thể thi thử để trải nghiệm thực tế.
+      <br><br>
+      Để sử dụng đầy đủ các tính năng của hệ thống,
+      vui lòng liên hệ <b>quản trị viên</b>.
+    </p>
 
-  db.collection("students")
-    .where("code", "==", code)
-    .get()
-    .then(snapshot => {
-      if (snapshot.empty) {
-        alert("Mã học viên không tồn tại");
-        return;
-      }
-
-      const student = snapshot.docs[0].data();
-
-      if (student.status !== "Hoạt động") {
-        alert("Tài khoản đang bị khóa");
-        return;
-      }
-
-      localStorage.setItem("userType", "student");
-      localStorage.setItem("studentCode", student.code);
-      localStorage.setItem("studentName", student.name);
-
-      window.location.href = "exam.html";
-    })
-    .catch(err => {
-      alert("Lỗi kết nối Firebase");
-      console.error(err);
-    });
-}
-
-/* ================== LOGIN GUEST ================== */
-function loginGuest() {
-  localStorage.setItem("userType", "guest");
-  window.location.href = "exam.html";
-}
-</script>
+  </div>
 
 </body>
+
 </html>
