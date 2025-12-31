@@ -72,6 +72,14 @@
       Để sử dụng đầy đủ các tính năng của hệ thống,
       vui lòng liên hệ <b>quản trị viên</b>.
     </p>
+<script>
+function loginGuest() {
+  localStorage.setItem("userType", "guest");
+  localStorage.setItem("studentCode", "GUEST");
+  localStorage.setItem("studentName", "Khách thi thử");
+  window.location.href = "thi.html";
+}
+</script>
 
   </div>
 
