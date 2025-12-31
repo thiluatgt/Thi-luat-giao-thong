@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Trang thi</title>
+  <title>Trang học viên</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -10,7 +10,7 @@
 <h2>TRANG HỌC VIÊN</h2>
 
 <div style="border:1px solid #999;padding:15px;margin-bottom:20px;background:#f9f9f9;">
-  <h3>📘 Thông tin bài thi</h3>
+  <h3>📘 Thông tin bài kiểm tra</h3>
   <ul>
     <li>Số câu hỏi: <b>30 câu</b></li>
     <li>Thời gian làm bài: <b>30 phút</b></li>
@@ -23,7 +23,7 @@
     <li>Không mở nhiều tab trình duyệt</li>
     <li>Không reload trang khi đang làm bài</li>
     <li>Hệ thống tự động ghi nhận thời gian</li>
-    <li>Mỗi học viên có thể bị khóa nếu vi phạm</li>
+    <li>Học viên có thể bị khóa nếu vi phạm</li>
   </ul>
 </div>
 
@@ -34,7 +34,7 @@
 </div>
 
 <button onclick="startExam()" style="font-size:18px;padding:12px 20px;background:green;color:white;border:none;border-radius:5px;">
-  ▶ TIẾP TỤC THI
+  ▶ TIẾP TỤC KIỂM TRA
 </button>
 
 <br><br>
@@ -63,6 +63,7 @@ const userType = localStorage.getItem("userType");
 if (!studentCode || userType !== "student") {
   alert("Bạn chưa đăng nhập");
   window.location.href = "index.html";
+  return;
 }
 
 /* ================== LOAD STUDENT ================== */
@@ -97,7 +98,7 @@ function startExam() {
     .get()
     .then(snapshot => {
       if (snapshot.size >= MAX_EXAM_PER_DAY) {
-        alert("❌ Bạn đã vượt quá số lượt thi trong ngày");
+        alert("❌ Bạn đã vượt quá số lượt kiểm tra trong ngày");
         return;
       }
 
@@ -106,8 +107,8 @@ function startExam() {
         date: today,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       }).then(() => {
-        alert("✅ Bắt đầu làm bài thi");
-        window.location.href = "exam.html"; // trang thi thật
+        alert("✅ Bắt đầu làm bài kiểm tra");
+        window.location.href = "test.html";
       });
     });
 }
