@@ -2,47 +2,49 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Thi Luật Giao Thông</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Hệ thống kiểm tra luật giao thông</title>
 </head>
-
-<body>
 
 <body style="
   margin:0;
-  font-family: 'Segoe UI', Arial;
-  background: linear-gradient(135deg, #1d3557, #457b9d);
+  font-family:'Segoe UI', Arial;
   min-height:100vh;
+  background:
+    linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
+    url('https://images.unsplash.com/photo-1503376780353-7e6692767b70');
+  background-size:cover;
+  background-position:center;
   display:flex;
   align-items:center;
   justify-content:center;
 ">
 
+  <!-- KHUNG ĐĂNG NHẬP -->
   <div style="
-    width:520px;
+    width:560px;
     background:#ffffff;
-    border-radius:12px;
-    padding:35px 40px;
-    box-shadow:0 15px 40px rgba(0,0,0,0.25);
+    border-radius:14px;
+    padding:40px 45px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.35);
   ">
 
     <h2 style="
       text-align:center;
-      margin-bottom:10px;
       color:#1d3557;
       line-height:1.4;
+      margin-bottom:10px;
     ">
-      HỆ THỐNG THI<br>
+      HỆ THỐNG KIỂM TRA<br>
       LUẬT GIAO THÔNG ĐƯỜNG BỘ TRỰC TUYẾN
     </h2>
 
     <p style="
       text-align:center;
       color:#555;
-      margin-bottom:30px;
       font-size:14px;
+      margin-bottom:30px;
     ">
-      Nền tảng thi và đánh giá kiến thức luật giao thông
+      Nền tảng kiểm tra & đánh giá kiến thức luật giao thông
     </p>
 
     <!-- ĐĂNG NHẬP HỌC VIÊN -->
@@ -66,7 +68,7 @@
       onclick="loginStudent()"
       style="
         width:100%;
-        padding:14px;
+        padding:15px;
         background:#1d3557;
         color:#fff;
         border:none;
@@ -78,20 +80,16 @@
       🔐 Đăng nhập hệ thống
     </button>
 
-    <div style="
-      text-align:center;
-      margin:25px 0;
-      color:#999;
-    ">
+    <div style="text-align:center;margin:28px 0;color:#aaa;">
       — hoặc —
     </div>
 
-    <!-- THI THỬ -->
+    <!-- KHÁCH -->
     <button
       onclick="loginGuest()"
       style="
         width:100%;
-        padding:14px;
+        padding:15px;
         background:#2a9d8f;
         color:#fff;
         border:none;
@@ -100,81 +98,90 @@
         cursor:pointer;
       "
     >
-      🎯 Thi thử không cần đăng nhập
+      🎯 Kiểm tra thử không cần đăng nhập
     </button>
 
     <!-- GHI CHÚ -->
     <div style="
-      margin-top:25px;
+      margin-top:28px;
       font-size:13.5px;
       color:#555;
       line-height:1.6;
       text-align:center;
     ">
       Bạn chưa đăng ký mã học viên?  
-      Bạn có thể <b>thi thử</b> để trải nghiệm thực tế hệ thống.
+      Bạn có thể <b>kiểm tra thử</b> để trải nghiệm thực tế hệ thống.
       <br><br>
-      Để sử dụng <b>đầy đủ các tính năng</b> của website,  
+      Để sử dụng <b>đầy đủ các chức năng</b>,  
       vui lòng liên hệ <b>quản trị viên</b>.
     </div>
 
   </div>
 
-</body>
-<script>
-function loginStudent() {
-  const codeInput = document.getElementById("studentCode");
-  if (!codeInput) {
-    alert("Không tìm thấy ô nhập mã học viên");
-    return;
-  }
+  <!-- FIREBASE -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-  const code = codeInput.value.trim().toUpperCase();
-  if (!code) {
-    alert("Vui lòng nhập mã học viên");
-    return;
-  }
+  <script>
+    // 🔴 DÁN FIREBASE CONFIG CỦA BẠN VÀO ĐÂY
+    const firebaseConfig = {
+      apiKey: "DÁN_API_KEY",
+      authDomain: "DÁN_AUTH_DOMAIN",
+      projectId: "DÁN_PROJECT_ID",
+      storageBucket: "DÁN_STORAGE_BUCKET",
+      messagingSenderId: "DÁN_MESSAGING_ID",
+      appId: "DÁN_APP_ID"
+    };
 
-  db.collection("students")
-    .where("code", "==", code)
-    .get()
-    .then(snapshot => {
-      if (snapshot.empty) {
-        alert("❌ Mã học viên không tồn tại");
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ĐĂNG NHẬP HỌC VIÊN
+    function loginStudent() {
+      const input = document.getElementById("studentCode");
+      const code = input.value.trim().toUpperCase();
+
+      if (!code) {
+        alert("Vui lòng nhập mã học viên");
         return;
       }
 
-      const student = snapshot.docs[0].data();
+      db.collection("students")
+        .where("code", "==", code)
+        .get()
+        .then(snapshot => {
+          if (snapshot.empty) {
+            alert("❌ Mã học viên không tồn tại");
+            return;
+          }
 
-      if (student.status !== "Hoạt động") {
-        alert("❌ Tài khoản học viên đang bị khóa");
-        return;
-      }
+          const student = snapshot.docs[0].data();
 
-      localStorage.setItem("userType", "student");
-      localStorage.setItem("studentCode", student.code);
-      localStorage.setItem("studentName", student.name);
+          if (student.status !== "Hoạt động") {
+            alert("❌ Tài khoản đang bị khóa");
+            return;
+          }
 
-      window.location.href = "exam.html";
-    })
-    .catch(err => {
-      console.error(err);
-      alert("❌ Lỗi kết nối hệ thống");
-    });
-}
-</script>
+          localStorage.setItem("userType", "student");
+          localStorage.setItem("studentCode", student.code);
+          localStorage.setItem("studentName", student.name);
 
-<script>
-function loginGuest() {
-  localStorage.setItem("userType", "guest");
-  localStorage.setItem("studentCode", "GUEST");
-  localStorage.setItem("studentName", "Khách thi thử");
-  window.location.href = "thi.html";
-}
-</script>
+          window.location.href = "exam.html";
+        })
+        .catch(err => {
+          console.error(err);
+          alert("❌ Lỗi kết nối hệ thống");
+        });
+    }
 
-  </div>
+    // ĐĂNG NHẬP KHÁCH
+    function loginGuest() {
+      localStorage.setItem("userType", "guest");
+      localStorage.setItem("studentCode", "GUEST");
+      localStorage.setItem("studentName", "Khách kiểm tra thử");
+      window.location.href = "thi.html";
+    }
+  </script>
 
 </body>
-
 </html>
