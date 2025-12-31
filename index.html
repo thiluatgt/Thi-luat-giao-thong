@@ -8,70 +8,120 @@
 
 <body>
 
-<body style="font-family:Arial;background:#f0f2f5;">
+<body style="
+  margin:0;
+  font-family: 'Segoe UI', Arial;
+  background: linear-gradient(135deg, #1d3557, #457b9d);
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+">
 
   <div style="
-    width:360px;
-    margin:100px auto;
-    background:#fff;
-    padding:25px;
-    border-radius:8px;
-    box-shadow:0 0 10px rgba(0,0,0,0.1);
+    width:520px;
+    background:#ffffff;
+    border-radius:12px;
+    padding:35px 40px;
+    box-shadow:0 15px 40px rgba(0,0,0,0.25);
   ">
 
-    <h2 style="text-align:center;margin-bottom:20px;">
-      HỆ THỐNG THI LUẬT GIAO THÔNG
+    <h2 style="
+      text-align:center;
+      margin-bottom:10px;
+      color:#1d3557;
+      line-height:1.4;
+    ">
+      HỆ THỐNG THI<br>
+      LUẬT GIAO THÔNG ĐƯỜNG BỘ TRỰC TUYẾN
     </h2>
 
+    <p style="
+      text-align:center;
+      color:#555;
+      margin-bottom:30px;
+      font-size:14px;
+    ">
+      Nền tảng thi và đánh giá kiến thức luật giao thông
+    </p>
+
     <!-- ĐĂNG NHẬP HỌC VIÊN -->
-    <label><b>Mã học viên</b></label>
+    <label style="font-weight:600;">Mã học viên</label>
     <input
       id="studentCode"
       type="text"
-      placeholder="Nhập mã học viên"
-      style="width:100%;padding:10px;margin:8px 0 15px 0;"
+      placeholder="Ví dụ: HV001"
+      style="
+        width:100%;
+        padding:14px;
+        margin-top:8px;
+        margin-bottom:20px;
+        border-radius:6px;
+        border:1px solid #ccc;
+        font-size:15px;
+      "
     >
 
     <button
       onclick="loginStudent()"
       style="
         width:100%;
-        padding:12px;
-        background:#007bff;
-        color:white;
+        padding:14px;
+        background:#1d3557;
+        color:#fff;
         border:none;
-        border-radius:5px;
-        font-size:16px;
+        border-radius:6px;
+        font-size:17px;
+        cursor:pointer;
       "
     >
-      Đăng nhập
+      🔐 Đăng nhập hệ thống
     </button>
 
-    <hr style="margin:20px 0;">
+    <div style="
+      text-align:center;
+      margin:25px 0;
+      color:#999;
+    ">
+      — hoặc —
+    </div>
 
     <!-- THI THỬ -->
     <button
       onclick="loginGuest()"
       style="
         width:100%;
-        padding:12px;
-        background:#28a745;
-        color:white;
+        padding:14px;
+        background:#2a9d8f;
+        color:#fff;
         border:none;
-        border-radius:5px;
-        font-size:16px;
+        border-radius:6px;
+        font-size:17px;
+        cursor:pointer;
       "
     >
       🎯 Thi thử không cần đăng nhập
     </button>
 
     <!-- GHI CHÚ -->
-    <p style="font-size:13px;color:#555;margin-top:20px;text-align:center;">
-      Bạn chưa đăng ký mã học viên? Bạn có thể thi thử để trải nghiệm thực tế.
+    <div style="
+      margin-top:25px;
+      font-size:13.5px;
+      color:#555;
+      line-height:1.6;
+      text-align:center;
+    ">
+      Bạn chưa đăng ký mã học viên?  
+      Bạn có thể <b>thi thử</b> để trải nghiệm thực tế hệ thống.
       <br><br>
-      Để sử dụng đầy đủ các tính năng của hệ thống,
+      Để sử dụng <b>đầy đủ các tính năng</b> của website,  
       vui lòng liên hệ <b>quản trị viên</b>.
-    </p>
+    </div>
+
+  </div>
+
+</body>
+
 <script>
 function loginGuest() {
   localStorage.setItem("userType", "guest");
