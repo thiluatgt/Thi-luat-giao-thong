@@ -5,12 +5,28 @@
   <title>Thi Luật Giao Thông</title>
   <link rel="stylesheet" href="style.css">
 </head>
-  <!-- Firebase SDK -->
+
+<body>
+
+<h1>HỆ THỐNG THI LUẬT GIAO THÔNG</h1>
+
+<div class="box">
+  <h2>Đăng nhập học viên</h2>
+  <input type="text" id="studentCode" placeholder="Nhập mã học viên">
+  <button onclick="loginStudent()">Đăng nhập</button>
+</div>
+
+<div class="box">
+  <h2>Đăng nhập khách</h2>
+  <button onclick="loginGuest()">Vào thi với tư cách khách</button>
+</div>
+
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-  // Your web app's Firebase configuration
+/* ================== FIREBASE ================== */
 const firebaseConfig = {
   apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
   authDomain: "thi-luat-giao-thong.firebaseapp.com",
@@ -20,28 +36,17 @@ const firebaseConfig = {
   appId: "1:173046681456:web:33da411c508ee243a149b5"
 };
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-</script>
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-<body>
-
-  <h1>HỆ THỐNG THI LUẬT GIAO THÔNG</h1>
-
-  <div class="box">
-    <h2>Đăng nhập học viên</h2>
-    <input type="text" id="studentCode" placeholder="Nhập mã học viên">
-    <button onclick="loginStudent()">Đăng nhập</button>
-  </div>
-
-  <div class="box">
-    <h2>Đăng nhập khách</h2>
-    <button onclick="loginGuest()">Vào thi với tư cách khách</button>
-  </div>
-
-  <script>
+/* ================== LOGIN STUDENT ================== */
 function loginStudent() {
-  const code = document.getElementById("studentCode").value.trim().toUpperCase();
+  const code = document
+    .getElementById("studentCode")
+    .value
+    .trim()
+    .toUpperCase();
+
   if (!code) {
     alert("Vui lòng nhập mã học viên");
     return;
@@ -57,6 +62,7 @@ function loginStudent() {
       }
 
       const student = snapshot.docs[0].data();
+
       if (student.status !== "Hoạt động") {
         alert("Tài khoản đang bị khóa");
         return;
@@ -73,13 +79,13 @@ function loginStudent() {
       console.error(err);
     });
 }
-</script>
 
-    function loginGuest() {
-      localStorage.setItem("userType", "guest");
-      window.location.href = "exam.html";
-    }
-  </script>
+/* ================== LOGIN GUEST ================== */
+function loginGuest() {
+  localStorage.setItem("userType", "guest");
+  window.location.href = "exam.html";
+}
+</script>
 
 </body>
 </html>
