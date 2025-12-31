@@ -130,6 +130,7 @@ const db = firebase.firestore();
 
 /* CHUẨN HÓA MÃ HỌC VIÊN */
 function normalizeCode(input) {
+  if (!input) return null;
   let code = input.toUpperCase().replace("HV", "").trim();
   if (!/^\d+$/.test(code)) return null;
   code = code.padStart(3, "0");
@@ -167,8 +168,18 @@ function loginStudent() {
       localStorage.setItem("studentName", student.name);
 
       window.location.href = "exam.html";
+    })
+    .catch(err => {
+      alert("⚠️ Lỗi kết nối hệ thống");
+      console.error(err);
     });
 }
 
 /* LOGIN KHÁCH */
-fun
+function loginGuest() {
+  localStorage.setItem("userType", "guest");
+  localStorage.removeItem("studentCode");
+  localStorage.removeItem("studentName");
+  window.location.href = "exam.html";
+}
+</script>
