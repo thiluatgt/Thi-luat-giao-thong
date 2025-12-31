@@ -10,10 +10,10 @@
   font-family:'Segoe UI', Arial;
   min-height:100vh;
 
-  /* BACKGROUND CHẮC CHẮN HIỂN THỊ */
+  /* ẢNH NỀN LOCAL – 100% HIỂN THỊ */
   background:
     linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)),
-    url('https://upload.wikimedia.org/wikipedia/commons/6/6a/Vietnam_traffic_police.jpg');
+    url('bg.jpg');
 
   background-size:cover;
   background-position:center;
@@ -32,26 +32,15 @@
   box-shadow:0 20px 50px rgba(0,0,0,0.35);
 ">
 
-  <h2 style="
-    text-align:center;
-    color:#1d3557;
-    line-height:1.4;
-    margin-bottom:10px;
-  ">
+  <h2 style="text-align:center;color:#1d3557;line-height:1.4;">
     HỆ THỐNG KIỂM TRA<br>
     LUẬT GIAO THÔNG ĐƯỜNG BỘ TRỰC TUYẾN
   </h2>
 
-  <p style="
-    text-align:center;
-    color:#555;
-    font-size:14px;
-    margin-bottom:30px;
-  ">
+  <p style="text-align:center;color:#555;margin-bottom:30px;">
     Phục vụ kiểm tra – đánh giá kiến thức luật giao thông
   </p>
 
-  <!-- NHẬP MÃ HỌC VIÊN -->
   <label style="font-weight:600;">Mã học viên</label>
   <input
     id="studentCode"
@@ -81,11 +70,8 @@
     🔐 Đăng nhập hệ thống
   </button>
 
-  <div style="text-align:center;margin:28px 0;color:#aaa;">
-    — hoặc —
-  </div>
+  <div style="text-align:center;margin:28px 0;color:#aaa;">— hoặc —</div>
 
-  <!-- THI THỬ -->
   <button onclick="loginGuest()" style="
     width:100%;
     padding:15px;
@@ -99,22 +85,14 @@
     🎯 Kiểm tra thử không cần đăng nhập
   </button>
 
-  <div style="
-    margin-top:28px;
-    font-size:13.5px;
-    color:#555;
-    line-height:1.6;
-    text-align:center;
-  ">
-    Bạn chưa đăng ký mã học viên?  
-    Bạn có thể <b>kiểm tra thử</b> để trải nghiệm thực tế.
+  <div style="margin-top:28px;font-size:13.5px;color:#555;text-align:center;">
+    Bạn chưa đăng ký mã học viên? Bạn có thể <b>kiểm tra thử</b>.
     <br><br>
-    Để sử dụng <b>đầy đủ các chức năng</b>, vui lòng liên hệ <b>quản trị viên</b>.
+    Để sử dụng đầy đủ chức năng, vui lòng liên hệ <b>quản trị viên</b>.
   </div>
 
 </div>
 
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -124,64 +102,35 @@ const firebaseConfig = {
   authDomain: "thi-luat-giao-thong.firebaseapp.com",
   projectId: "thi-luat-giao-thong"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-/* CHUẨN HÓA MÃ HỌC VIÊN */
 function normalizeCode(input) {
-  if (!input) return null;
   let code = input.toUpperCase().replace("HV", "").trim();
   if (!/^\d+$/.test(code)) return null;
-  code = code.padStart(3, "0");
-  return "HV" + code;
+  return "HV" + code.padStart(3, "0");
 }
 
-/* LOGIN HỌC VIÊN */
 function loginStudent() {
   const raw = document.getElementById("studentCode").value;
   const code = normalizeCode(raw);
+  if (!code) { alert("Vui lòng nhập đúng mã học viên"); return; }
 
-  if (!code) {
-    alert("Vui lòng nhập đúng mã học viên");
-    return;
-  }
-
-  db.collection("students")
-    .where("code", "==", code)
-    .get()
-    .then(snapshot => {
-      if (snapshot.empty) {
-        alert("❌ Không tồn tại học viên với mã " + code);
-        return;
-      }
-
-      const student = snapshot.docs[0].data();
-
-      if (student.status !== "Hoạt động") {
-        alert("❌ Tài khoản đang bị khóa");
-        return;
-      }
-
-      localStorage.setItem("userType", "student");
-      localStorage.setItem("studentCode", student.code);
-      localStorage.setItem("studentName", student.name);
-
-      window.location.href = "exam.html";
-    })
-    .catch(err => {
-      alert("⚠️ Lỗi kết nối hệ thống");
-      console.error(err);
-    });
+  db.collection("students").where("code", "==", code).get().then(snap => {
+    if (snap.empty) { alert("Không tồn tại mã " + code); return; }
+    const st = snap.docs[0].data();
+    localStorage.setItem("userType","student");
+    localStorage.setItem("studentCode",st.code);
+    localStorage.setItem("studentName",st.name);
+    window.location.href="exam.html";
+  });
 }
 
-/* LOGIN KHÁCH */
 function loginGuest() {
-  localStorage.setItem("userType", "guest");
-  localStorage.removeItem("studentCode");
-  localStorage.removeItem("studentName");
-  window.location.href = "exam.html";
+  localStorage.setItem("userType","guest");
+  window.location.href="thi.html";
 }
 </script>
+
 </body>
 </html>
