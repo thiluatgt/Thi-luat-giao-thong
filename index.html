@@ -121,6 +121,48 @@
   </div>
 
 </body>
+<script>
+function loginStudent() {
+  const codeInput = document.getElementById("studentCode");
+  if (!codeInput) {
+    alert("Không tìm thấy ô nhập mã học viên");
+    return;
+  }
+
+  const code = codeInput.value.trim().toUpperCase();
+  if (!code) {
+    alert("Vui lòng nhập mã học viên");
+    return;
+  }
+
+  db.collection("students")
+    .where("code", "==", code)
+    .get()
+    .then(snapshot => {
+      if (snapshot.empty) {
+        alert("❌ Mã học viên không tồn tại");
+        return;
+      }
+
+      const student = snapshot.docs[0].data();
+
+      if (student.status !== "Hoạt động") {
+        alert("❌ Tài khoản học viên đang bị khóa");
+        return;
+      }
+
+      localStorage.setItem("userType", "student");
+      localStorage.setItem("studentCode", student.code);
+      localStorage.setItem("studentName", student.name);
+
+      window.location.href = "exam.html";
+    })
+    .catch(err => {
+      console.error(err);
+      alert("❌ Lỗi kết nối hệ thống");
+    });
+}
+</script>
 
 <script>
 function loginGuest() {
