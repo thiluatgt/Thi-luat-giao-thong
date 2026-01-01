@@ -1,69 +1,3 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-<meta charset="UTF-8">
-<title>KIỂM TRA LUẬT GIAO THÔNG</title>
-</head>
-
-<body style="margin:0;font-family:Arial;background:#f4f6f8;">
-
-<!-- ===== HEADER FIXED ===== -->
-<div style="
-position:fixed;
-top:0;left:0;right:0;
-background:#1d3557;
-color:white;
-padding:15px 25px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-z-index:1000;
-">
-
-<div>
-<b id="studentName"></b><br>
-<span id="studentCode"></span>
-</div>
-
-<div style="font-size:20px;">
-⏱ <span id="time">30:00</span>
-</div>
-
-</div>
-
-<!-- ===== MAIN ===== -->
-<div style="max-width:900px;margin:120px auto 40px;padding:0 20px;">
-
-<div id="questionBox" style="
-background:white;
-padding:25px;
-border-radius:10px;
-min-height:180px;
-box-shadow:0 5px 20px rgba(0,0,0,0.15);
-"></div>
-
-<div style="display:flex;justify-content:space-between;margin-top:20px;">
-<button id="prevBtn" onclick="prevQuestion()">⬅ Câu trước</button>
-<button id="nextBtn" onclick="nextQuestion()">Câu tiếp theo ➡</button>
-<button id="submitBtn" onclick="submitExam()" style="display:none;background:#e63946;color:white;">
-📤 NỘP BÀI
-</button>
-</div>
-
-<div id="map" style="
-display:flex;
-flex-wrap:wrap;
-gap:8px;
-justify-content:center;
-margin-top:30px;
-"></div>
-
-</div>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
 <script>
 /* ===== LOGIN CHECK ===== */
 const userType = localStorage.getItem("userType");
@@ -88,7 +22,7 @@ const studentName = localStorage.getItem("studentName") || "Khách";
 document.getElementById("studentCode").innerText = "Mã: " + studentCode;
 document.getElementById("studentName").innerText = "👤 " + studentName;
 
-/* ===== QUESTIONS (MẪU) ===== */
+/* ===== QUESTIONS ===== */
 const base = [
  {q:"Người điều khiển xe mô tô phải đủ bao nhiêu tuổi?",a:["16","18","20","21"],c:1},
  {q:"Biển báo hình tròn viền đỏ là gì?",a:["Chỉ dẫn","Cấm","Nguy hiểm","Cảnh báo"],c:1}
@@ -101,6 +35,13 @@ while(questions.length<30){
 let current=0;
 const answers=new Array(30).fill(null);
 
+/* ===== DOM ===== */
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const submitBtn = document.getElementById("submitBtn");
+const map = document.getElementById("map");
+const timeEl = document.getElementById("time");
+
 /* ===== RENDER ===== */
 function render(){
  const q=questions[current];
@@ -108,7 +49,7 @@ function render(){
  q.a.forEach((x,i)=>{
   html+=`
   <label style="display:block;margin-bottom:8px;">
-  <input type="radio" name="ans" value="${i}"
+  <input type="radio" name="ans"
    ${answers[current]==i?'checked':''}
    onchange="answers[${current}]=${i};updateMap()">
   ${x}
@@ -151,7 +92,7 @@ const timer=setInterval(()=>{
  if(submitted) return;
  t--;
  let m=Math.floor(t/60),s=t%60;
- time.innerText=
+ timeEl.innerText=
   String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
  if(t<=0) submitExam();
 },1000);
@@ -182,6 +123,3 @@ function submitExam(){
 
 render();
 </script>
-
-</body>
-</html>
