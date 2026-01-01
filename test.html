@@ -12,32 +12,33 @@
 position:fixed;
 top:0;left:0;right:0;
 background:#a8dadc;
-padding:18px 30px;
+padding:18px 60px;
 display:flex;
-justify-content:flex-start;
+justify-content:space-between;
 align-items:center;
-gap:50px;
 z-index:1000;
 box-shadow:0 2px 10px rgba(0,0,0,0.3);
 ">
 
-<!-- STUDENT INFO -->
-<div>
-<div id="studentName" style="font-size:20px;font-weight:bold;"></div>
-<div id="studentInfo" style="font-size:15px;margin-top:3px;"></div>
+<!-- LEFT SPACER -->
+<div style="width:200px;"></div>
+
+<!-- STUDENT INFO (CENTER) -->
+<div style="text-align:center;">
+  <div id="studentName" style="font-size:20px;font-weight:bold;"></div>
+  <div id="studentInfo" style="font-size:15px;margin-top:4px;"></div>
 </div>
 
-<!-- TIMER -->
-<div style="font-size:32px;font-weight:bold;color:#1d3557;">
+<!-- TIMER (RIGHT) -->
+<div style="font-size:34px;font-weight:bold;color:#1d3557;">
 ⏱ <span id="time">30:00</span>
 </div>
 
 </div>
 
 <!-- ===== MAIN ===== -->
-<div style="max-width:900px;margin:130px auto 40px;padding:0 20px;">
+<div style="max-width:900px;margin:140px auto 40px;padding:0 20px;">
 
-<!-- QUESTION -->
 <div id="questionBox" style="
 background:white;
 padding:30px;
@@ -47,7 +48,6 @@ box-shadow:0 6px 25px rgba(0,0,0,0.15);
 font-size:17px;
 "></div>
 
-<!-- BUTTONS -->
 <div style="
 display:flex;
 justify-content:center;
@@ -56,8 +56,8 @@ margin-top:25px;
 ">
 
 <button id="prevBtn" onclick="prevQuestion()" style="
-padding:14px 28px;
-font-size:17px;
+padding:16px 34px;
+font-size:18px;
 background:#457b9d;
 color:white;
 border:none;
@@ -69,8 +69,8 @@ display:none;
 </button>
 
 <button id="nextBtn" onclick="nextQuestion()" style="
-padding:14px 28px;
-font-size:17px;
+padding:16px 34px;
+font-size:18px;
 background:#1d3557;
 color:white;
 border:none;
@@ -82,8 +82,8 @@ Câu tiếp theo ➡
 
 <button id="submitBtn" onclick="submitExam()" style="
 display:none;
-padding:14px 32px;
-font-size:18px;
+padding:16px 36px;
+font-size:19px;
 background:#e63946;
 color:white;
 border:none;
@@ -95,7 +95,6 @@ cursor:pointer;
 
 </div>
 
-<!-- QUESTION MAP -->
 <div id="map" style="
 display:grid;
 grid-template-columns:repeat(15, 1fr);
@@ -104,7 +103,6 @@ margin-top:35px;
 justify-items:center;
 "></div>
 
-<!-- LEGEND -->
 <div style="
 margin-top:20px;
 display:flex;
