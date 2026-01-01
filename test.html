@@ -2,80 +2,105 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>KIỂM TRA LUẬT GIAO THÔNG ĐƯỜNG BỘ</title>
+<title>KIỂM TRA LUẬT GIAO THÔNG</title>
 </head>
 
-<body style="margin:0;font-family:Arial;background:#f4f6f8;">
+<body style="margin:0;font-family:Arial;background:#eef2f7;">
 
-<!-- ===== HEADER FIXED ===== -->
+<!-- ===== HEADER ===== -->
 <div style="
 position:fixed;
 top:0;left:0;right:0;
-background:#1d3557;
-color:white;
-padding:15px 25px;
+background:#a8dadc;
+padding:18px;
 display:flex;
 justify-content:space-between;
 align-items:center;
 z-index:1000;
-box-shadow:0 2px 10px rgba(0,0,0,0.4);
+box-shadow:0 2px 10px rgba(0,0,0,0.3);
 ">
 
-<div>
-<b id="studentName"></b><br>
-<span id="studentCode"></span>
+<!-- STUDENT INFO -->
+<div style="flex:1;text-align:center;">
+<div id="studentName" style="font-size:20px;font-weight:bold;"></div>
+<div id="studentInfo" style="font-size:15px;margin-top:3px;"></div>
 </div>
 
-<div style="font-size:20px;font-weight:bold;">
+<!-- TIMER -->
+<div style="font-size:32px;font-weight:bold;color:#1d3557;">
 ⏱ <span id="time">30:00</span>
 </div>
 
 </div>
 
-<!-- ===== MAIN CONTENT ===== -->
-<div style="max-width:900px;margin:120px auto 40px;padding:0 20px;">
+<!-- ===== MAIN ===== -->
+<div style="max-width:900px;margin:130px auto 40px;padding:0 20px;">
 
-<!-- QUESTION BOX -->
+<!-- QUESTION -->
 <div id="questionBox" style="
 background:white;
-padding:25px;
-border-radius:10px;
-min-height:200px;
-box-shadow:0 5px 20px rgba(0,0,0,0.15);
-font-size:16px;
+padding:30px;
+border-radius:12px;
+min-height:220px;
+box-shadow:0 6px 25px rgba(0,0,0,0.15);
+font-size:17px;
 "></div>
 
-<!-- NAVIGATION -->
-<div style="display:flex;justify-content:space-between;margin-top:20px;">
-<button id="prevBtn" onclick="prevQuestion()" style="padding:10px 18px;">
+<!-- BUTTONS -->
+<div style="
+display:flex;
+justify-content:center;
+gap:30px;
+margin-top:25px;
+">
+
+<button id="prevBtn" onclick="prevQuestion()" style="
+padding:14px 28px;
+font-size:17px;
+background:#457b9d;
+color:white;
+border:none;
+border-radius:8px;
+cursor:pointer;
+display:none;
+">
 ⬅ Câu trước
 </button>
 
-<button id="nextBtn" onclick="nextQuestion()" style="padding:10px 18px;">
+<button id="nextBtn" onclick="nextQuestion()" style="
+padding:14px 28px;
+font-size:17px;
+background:#1d3557;
+color:white;
+border:none;
+border-radius:8px;
+cursor:pointer;
+">
 Câu tiếp theo ➡
 </button>
 
 <button id="submitBtn" onclick="submitExam()" style="
 display:none;
-padding:10px 22px;
+padding:14px 32px;
+font-size:18px;
 background:#e63946;
 color:white;
 border:none;
-border-radius:6px;
-font-size:16px;
+border-radius:8px;
 cursor:pointer;
 ">
 📤 NỘP BÀI
 </button>
+
 </div>
 
 <!-- QUESTION MAP -->
 <div id="map" style="
-display:flex;
-flex-wrap:wrap;
+display:grid;
+grid-template-columns:repeat(15, 1fr);
 gap:8px;
-justify-content:center;
-margin-top:30px;
+margin-top:35px;
+justify-items:center;
 "></div>
 
 </div>
@@ -85,162 +110,122 @@ margin-top:30px;
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-/* ===== LOGIN CHECK ===== */
-const userType = localStorage.getItem("userType");
-if (!userType) {
+/* ===== LOGIN ===== */
+if (!localStorage.getItem("userType")) {
   alert("Bạn chưa đăng nhập");
   window.location.href = "index.html";
 }
 
 /* ===== FIREBASE ===== */
-const firebaseConfig = {
+firebase.initializeApp({
   apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
   authDomain: "thi-luat-giao-thong.firebaseapp.com",
   projectId: "thi-luat-giao-thong"
-};
-firebase.initializeApp(firebaseConfig);
+});
 const db = firebase.firestore();
 
-/* ===== USER INFO ===== */
-const studentCode = localStorage.getItem("studentCode") || "KHÁCH";
-const studentName = localStorage.getItem("studentName") || "Khách";
+/* ===== USER ===== */
+const name = localStorage.getItem("studentName") || "Khách";
+const code = localStorage.getItem("studentCode") || "---";
+const unit = localStorage.getItem("studentUnit") || "Chưa xác định";
 
-document.getElementById("studentCode").innerText = "Mã: " + studentCode;
-document.getElementById("studentName").innerText = "👤 " + studentName;
+studentName.innerText = name;
+studentInfo.innerText = `Mã HV: ${code} – Đơn vị: ${unit}`;
 
-/* ===== QUESTIONS (MẪU) ===== */
-const baseQuestions = [
-  {
-    q: "Người điều khiển xe mô tô phải đủ bao nhiêu tuổi?",
-    a: ["16 tuổi", "18 tuổi", "20 tuổi", "21 tuổi"],
-    c: 1
-  },
-  {
-    q: "Biển báo hình tròn viền đỏ có ý nghĩa gì?",
-    a: ["Chỉ dẫn", "Cấm", "Nguy hiểm", "Cảnh báo"],
-    c: 1
-  }
+/* ===== QUESTIONS ===== */
+const base = [
+ {q:"Người điều khiển xe mô tô phải đủ bao nhiêu tuổi?",a:["16","18","20","21"],c:1},
+ {q:"Biển báo tròn viền đỏ là gì?",a:["Chỉ dẫn","Cấm","Nguy hiểm","Cảnh báo"],c:1}
 ];
 
-// tạo đủ 30 câu
-const questions = [];
-while (questions.length < 30) {
-  questions.push(JSON.parse(JSON.stringify(baseQuestions[questions.length % 2])));
+const questions=[];
+while(questions.length<30){
+ questions.push(JSON.parse(JSON.stringify(base[questions.length%2])));
 }
 
-let current = 0;
-const answers = new Array(30).fill(null);
+let current=0;
+const answers=new Array(30).fill(null);
 
-/* ===== DOM ===== */
-const prevBtn = document.getElementById("prevBtn");
-const nextBtn = document.getElementById("nextBtn");
-const submitBtn = document.getElementById("submitBtn");
-const map = document.getElementById("map");
-const timeEl = document.getElementById("time");
+/* ===== RENDER ===== */
+function render(){
+ const q=questions[current];
+ let html=`<b>Câu ${current+1}/30:</b> ${q.q}<br><br>`;
+ q.a.forEach((x,i)=>{
+  html+=`
+  <label style="display:block;margin-bottom:10px;">
+   <input type="radio" name="ans"
+    ${answers[current]==i?"checked":""}
+    onchange="answers[${current}]=${i};updateMap()">
+   ${x}
+  </label>`;
+ });
+ questionBox.innerHTML=html;
 
-/* ===== RENDER QUESTION ===== */
-function render() {
-  const q = questions[current];
-  let html = `<b>Câu ${current + 1}/30:</b> ${q.q}<br><br>`;
+ prevBtn.style.display = current>=1 ? "inline-block" : "none";
+ nextBtn.style.display = current<29 ? "inline-block" : "none";
+ submitBtn.style.display = current==29 ? "inline-block" : "none";
 
-  q.a.forEach((ans, i) => {
-    html += `
-      <label style="display:block;margin-bottom:8px;">
-        <input type="radio" name="ans"
-          ${answers[current] === i ? "checked" : ""}
-          onchange="answers[${current}] = ${i}; updateMap();">
-        ${ans}
-      </label>
-    `;
-  });
-
-  document.getElementById("questionBox").innerHTML = html;
-
-  prevBtn.style.display = current === 0 ? "none" : "inline-block";
-  nextBtn.style.display = current === 29 ? "none" : "inline-block";
-  submitBtn.style.display = current === 29 ? "inline-block" : "none";
-
-  updateMap();
+ updateMap();
 }
 
-/* ===== QUESTION MAP ===== */
-function updateMap() {
-  map.innerHTML = "";
-  answers.forEach((a, i) => {
-    let color = "#ccc";
-    if (i === current) color = "#e63946";
-    else if (a !== null) color = "#457b9d";
+/* ===== MAP ===== */
+function updateMap(){
+ map.innerHTML="";
+ answers.forEach((a,i)=>{
+  let bg="#fff", color="#000";
+  if(i==current){ bg="#e63946"; color="white"; }
+  else if(a!==null){ bg="#457b9d"; color="white"; }
 
-    const box = document.createElement("div");
-    box.style = `
-      width:30px;height:30px;
-      border-radius:4px;
-      background:${color};
-      color:white;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      cursor:pointer;
-      font-size:13px;
-    `;
-    box.innerText = i + 1;
-    box.onclick = () => { current = i; render(); };
-    map.appendChild(box);
-  });
+  const d=document.createElement("div");
+  d.style=`
+   width:34px;height:34px;
+   border-radius:6px;
+   border:1px solid #999;
+   background:${bg};
+   color:${color};
+   display:flex;
+   align-items:center;
+   justify-content:center;
+   cursor:pointer;
+   font-size:14px;
+  `;
+  d.innerText=i+1;
+  d.onclick=()=>{current=i;render();}
+  map.appendChild(d);
+ });
 }
 
 /* ===== NAV ===== */
-function nextQuestion() {
-  if (current < 29) { current++; render(); }
-}
-function prevQuestion() {
-  if (current > 0) { current--; render(); }
-}
+function nextQuestion(){ if(current<29){current++;render();}}
+function prevQuestion(){ if(current>0){current--;render();}}
 
 /* ===== TIMER ===== */
-let time = 30 * 60;
-let submitted = false;
+let t=30*60, done=false;
+const timer=setInterval(()=>{
+ if(done)return;
+ t--;
+ time.innerText=
+  String(Math.floor(t/60)).padStart(2,"0")+":"+
+  String(t%60).padStart(2,"0");
+ if(t<=0) submitExam();
+},1000);
 
-const timer = setInterval(() => {
-  if (submitted) return;
-  time--;
-  const m = Math.floor(time / 60);
-  const s = time % 60;
-  timeEl.innerText =
-    String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
-
-  if (time <= 0) submitExam();
-}, 1000);
-
-/* ===== SUBMIT EXAM ===== */
-function submitExam() {
-  if (submitted) return;
-  submitted = true;
-  clearInterval(timer);
-
-  let correct = 0;
-  questions.forEach((q, i) => {
-    if (answers[i] === q.c) correct++;
-  });
-
-  const pass = correct >= 27;
-  const today = new Date().toISOString().split("T")[0];
-
-  db.collection("exam_logs").add({
-    code: studentCode,
-    score: correct,
-    total: 30,
-    pass: pass,
-    date: today,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-  }).then(() => {
-    alert(
-      "KẾT QUẢ\n" +
-      "Đúng: " + correct + "/30\n" +
-      (pass ? "✅ ĐẠT" : "❌ KHÔNG ĐẠT")
-    );
-    window.location.href = "exam.html";
-  });
+/* ===== SUBMIT ===== */
+function submitExam(){
+ if(done)return;
+ done=true; clearInterval(timer);
+ let correct=0;
+ questions.forEach((q,i)=>{if(answers[i]==q.c)correct++;});
+ db.collection("exam_logs").add({
+  code, unit,
+  score:correct,
+  total:30,
+  pass:correct>=27,
+  timestamp:firebase.firestore.FieldValue.serverTimestamp()
+ }).then(()=>{
+  alert(`Kết quả: ${correct}/30`);
+  location.href="exam.html";
+ });
 }
 
 render();
