@@ -1,0 +1,34 @@
+<script>
+const studentCode = localStorage.getItem("studentCode") || "GUEST";
+const isStudent = localStorage.getItem("userType") === "student";
+
+function getToday() {
+  return new Date().toISOString().split("T")[0];
+}
+
+/* ================== NỘP BÀI ================== */
+function submitExam(correctAnswers, totalQuestions) {
+
+  const score = correctAnswers;
+  const pass = score >= 27; // 27/30 đạt
+  const today = getToday();
+
+  // GHI LOG TỰ ĐỘNG
+  db.collection("exam_logs").add({
+    code: studentCode,
+    score: score,
+    total: totalQuestions,
+    pass: pass,
+    date: today,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  })
+  .then(() => {
+    alert(
+      "📊 KẾT QUẢ\n" +
+      "Số câu đúng: " + score + "/" + totalQuestions + "\n" +
+      (pass ? "✅ ĐẠT" : "❌ KHÔNG ĐẠT")
+    );
+    window.location.href = "exam.html"; // quay về trang học viên
+  });
+}
+</script>
