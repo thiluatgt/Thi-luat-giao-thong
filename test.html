@@ -2,53 +2,64 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Kiểm tra luật giao thông</title>
+<title>KIỂM TRA LUẬT GIAO THÔNG</title>
 </head>
 
-<body style="font-family:Arial;background:#f4f6f8;margin:0;padding:0;">
+<body style="margin:0;font-family:Arial;background:#f4f6f8;">
 
-<div style="max-width:900px;margin:auto;padding:20px;">
-
-<h2 style="text-align:center;color:#1d3557;">
-KIỂM TRA LUẬT GIAO THÔNG ĐƯỜNG BỘ
-</h2>
-
+<!-- ===== HEADER FIXED ===== -->
 <div style="
-background:#fff;
-padding:15px;
-border-radius:8px;
-margin-bottom:20px;
+position:fixed;
+top:0;left:0;right:0;
+background:#1d3557;
+color:white;
+padding:15px 25px;
 display:flex;
 justify-content:space-between;
 align-items:center;
+z-index:1000;
 ">
 
 <div>
-<b>Học viên:</b> <span id="studentName"></span><br>
-<b>Mã:</b> <span id="studentCode"></span>
+<b id="studentName"></b><br>
+<span id="studentCode"></span>
 </div>
 
-<div style="font-size:18px;color:red;">
-⏱ Thời gian còn lại: <span id="time">30:00</span>
+<div style="font-size:20px;">
+⏱ <span id="time">30:00</span>
 </div>
 
 </div>
 
-<form id="examForm"></form>
+<!-- ===== MAIN ===== -->
+<div style="max-width:900px;margin:120px auto 40px;padding:0 20px;">
 
-<button onclick="submitExam()" style="
-width:100%;
-padding:15px;
-font-size:18px;
-background:#e63946;
-color:white;
-border:none;
-border-radius:8px;
-cursor:pointer;
-margin-top:20px;
-">
+<!-- ===== QUESTION BOX ===== -->
+<div id="questionBox" style="
+background:white;
+padding:25px;
+border-radius:10px;
+min-height:180px;
+box-shadow:0 5px 20px rgba(0,0,0,0.15);
+"></div>
+
+<!-- ===== NAV BUTTON ===== -->
+<div style="display:flex;justify-content:space-between;margin-top:20px;">
+<button id="prevBtn" onclick="prevQuestion()">⬅ Câu trước</button>
+<button id="nextBtn" onclick="nextQuestion()">Câu tiếp theo ➡</button>
+<button id="submitBtn" onclick="submitExam()" style="display:none;background:#e63946;color:white;">
 📤 NỘP BÀI
 </button>
+</div>
+
+<!-- ===== QUESTION MAP ===== -->
+<div id="map" style="
+display:flex;
+flex-wrap:wrap;
+gap:8px;
+justify-content:center;
+margin-top:30px;
+"></div>
 
 </div>
 
@@ -66,108 +77,100 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-/* ===== LOGIN CHECK ===== */
-const userType = localStorage.getItem("userType");
-if (!userType) {
-  alert("Bạn chưa đăng nhập");
-  window.location.href = "index.html";
-}
-
+/* ===== USER ===== */
 const studentCode = localStorage.getItem("studentCode") || "KHÁCH";
 const studentName = localStorage.getItem("studentName") || "Khách";
 
-document.getElementById("studentCode").innerText = studentCode;
-document.getElementById("studentName").innerText = studentName;
+document.getElementById("studentCode").innerText = "Mã: " + studentCode;
+document.getElementById("studentName").innerText = "👤 " + studentName;
 
-/* ===== DANH SÁCH CÂU HỎI MẪU ===== */
-const questions = [
-  {
-    q: "Người điều khiển xe mô tô phải đủ bao nhiêu tuổi?",
-    a: ["16 tuổi", "18 tuổi", "20 tuổi", "21 tuổi"],
-    correct: 1
-  },
-  {
-    q: "Biển báo hình tròn viền đỏ có ý nghĩa gì?",
-    a: ["Chỉ dẫn", "Cảnh báo", "Cấm", "Nguy hiểm"],
-    correct: 2
-  }
+/* ===== QUESTIONS (MẪU) ===== */
+const base = [
+ {q:"Người điều khiển xe mô tô phải đủ bao nhiêu tuổi?",a:["16","18","20","21"],c:1},
+ {q:"Biển báo hình tròn viền đỏ là gì?",a:["Chỉ dẫn","Cấm","Nguy hiểm","Cảnh báo"],c:1}
 ];
-
-while (questions.length < 30) {
-  questions.push(JSON.parse(JSON.stringify(questions[questions.length % 2])));
+const questions=[];
+while(questions.length<30){
+  questions.push(JSON.parse(JSON.stringify(base[questions.length%2])));
 }
 
-/* ===== HIỂN THỊ CÂU HỎI ===== */
-const form = document.getElementById("examForm");
+let current=0;
+const answers=new Array(30).fill(null);
 
-questions.forEach((item, index) => {
-  const div = document.createElement("div");
-  div.style = "background:#fff;padding:15px;border-radius:8px;margin-bottom:15px;";
+/* ===== RENDER QUESTION ===== */
+function render(){
+ const q=questions[current];
+ let html=`<b>Câu ${current+1}/30:</b> ${q.q}<br><br>`;
+ q.a.forEach((x,i)=>{
+  html+=`
+  <label style="display:block;margin-bottom:8px;">
+  <input type="radio" name="ans" value="${i}" ${answers[current]==i?'checked':''}
+  onchange="answers[${current}]=${i};updateMap()">
+  ${x}
+  </label>`;
+ });
+ document.getElementById("questionBox").innerHTML=html;
 
-  let html = `<b>Câu ${index+1}:</b> ${item.q}<br><br>`;
-  item.a.forEach((ans, i) => {
-    html += `
-      <label>
-        <input type="radio" name="q${index}" value="${i}">
-        ${ans}
-      </label><br>
-    `;
-  });
-
-  div.innerHTML = html;
-  form.appendChild(div);
-});
-
-/* ===== ĐẾM GIỜ ===== */
-let time = 30 * 60;
-let submitted = false;
-
-const timer = setInterval(() => {
-  if (submitted) return;
-
-  time--;
-  const m = Math.floor(time / 60);
-  const s = time % 60;
-  document.getElementById("time").innerText =
-    String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
-
-  if (time <= 0) {
-    submitExam();
-  }
-}, 1000);
-
-/* ===== NỘP BÀI ===== */
-function submitExam() {
-  if (submitted) return;
-  submitted = true;
-  clearInterval(timer);
-
-  let correct = 0;
-
-  questions.forEach((q, i) => {
-    const ans = document.querySelector(`input[name="q${i}"]:checked`);
-    if (ans && Number(ans.value) === q.correct) correct++;
-  });
-
-  const pass = correct >= 27;
-  const today = new Date().toISOString().split("T")[0];
-
-  db.collection("exam_logs").add({
-    code: studentCode,
-    score: correct,
-    total: 30,
-    pass: pass,
-    date: today,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-  }).then(() => {
-    alert(
-      "KẾT QUẢ:\n" +
-      "Đúng: " + correct + "/30\n" +
-      (pass ? "✅ ĐẠT" : "❌ KHÔNG ĐẠT")
-    );
-    window.location.href = "exam.html";
-  });
+ document.getElementById("prevBtn").style.display=current==0?"none":"inline-block";
+ document.getElementById("nextBtn").style.display=current==29?"none":"inline-block";
+ document.getElementById("submitBtn").style.display=current==29?"inline-block":"none";
+ updateMap();
 }
+
+/* ===== MAP ===== */
+function updateMap(){
+ const map=document.getElementById("map");
+ map.innerHTML="";
+ answers.forEach((a,i)=>{
+  let color="#ccc";
+  if(i==current) color="#e63946";
+  else if(a!==null) color="#457b9d";
+  const d=document.createElement("div");
+  d.style=`width:30px;height:30px;border-radius:4px;
+           background:${color};color:white;
+           display:flex;align-items:center;justify-content:center;
+           cursor:pointer;font-size:13px;`;
+  d.innerText=i+1;
+  d.onclick=()=>{current=i;render();}
+  map.appendChild(d);
+ });
+}
+
+/* ===== NAV ===== */
+function nextQuestion(){current++;render();}
+function prevQuestion(){current--;render();}
+
+/* ===== TIMER ===== */
+let t=30*60;
+setInterval(()=>{
+ t--;
+ if(t<=0) submitExam();
+ let m=Math.floor(t/60),s=t%60;
+ document.getElementById("time").innerText=
+ String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+},1000);
+
+/* ===== SUBMIT ===== */
+function submitExam(){
+ let correct=0;
+ questions.forEach((q,i)=>{if(answers[i]==q.c)correct++;});
+ const pass=correct>=27;
+ const today=new Date().toISOString().split("T")[0];
+
+ db.collection("exam_logs").add({
+  code:studentCode,
+  score:correct,
+  total:30,
+  pass:pass,
+  date:today,
+  timestamp:firebase.firestore.FieldValue.serverTimestamp()
+ }).then(()=>{
+  alert(`KẾT QUẢ\nĐúng: ${correct}/30\n${pass?"✅ ĐẠT":"❌ KHÔNG ĐẠT"}`);
+  window.location.href="exam.html";
+ });
+}
+
+render();
 </script>
 
 </body>
