@@ -34,7 +34,6 @@ z-index:1000;
 <!-- ===== MAIN ===== -->
 <div style="max-width:900px;margin:120px auto 40px;padding:0 20px;">
 
-<!-- ===== QUESTION BOX ===== -->
 <div id="questionBox" style="
 background:white;
 padding:25px;
@@ -43,7 +42,6 @@ min-height:180px;
 box-shadow:0 5px 20px rgba(0,0,0,0.15);
 "></div>
 
-<!-- ===== NAV BUTTON ===== -->
 <div style="display:flex;justify-content:space-between;margin-top:20px;">
 <button id="prevBtn" onclick="prevQuestion()">⬅ Câu trước</button>
 <button id="nextBtn" onclick="nextQuestion()">Câu tiếp theo ➡</button>
@@ -52,7 +50,6 @@ box-shadow:0 5px 20px rgba(0,0,0,0.15);
 </button>
 </div>
 
-<!-- ===== QUESTION MAP ===== -->
 <div id="map" style="
 display:flex;
 flex-wrap:wrap;
@@ -68,6 +65,13 @@ margin-top:30px;
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
+/* ===== LOGIN CHECK ===== */
+const userType = localStorage.getItem("userType");
+if (!userType) {
+  alert("Bạn chưa đăng nhập");
+  window.location.href = "index.html";
+}
+
 /* ===== FIREBASE ===== */
 const firebaseConfig = {
   apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
@@ -97,29 +101,29 @@ while(questions.length<30){
 let current=0;
 const answers=new Array(30).fill(null);
 
-/* ===== RENDER QUESTION ===== */
+/* ===== RENDER ===== */
 function render(){
  const q=questions[current];
  let html=`<b>Câu ${current+1}/30:</b> ${q.q}<br><br>`;
  q.a.forEach((x,i)=>{
   html+=`
   <label style="display:block;margin-bottom:8px;">
-  <input type="radio" name="ans" value="${i}" ${answers[current]==i?'checked':''}
-  onchange="answers[${current}]=${i};updateMap()">
+  <input type="radio" name="ans" value="${i}"
+   ${answers[current]==i?'checked':''}
+   onchange="answers[${current}]=${i};updateMap()">
   ${x}
   </label>`;
  });
  document.getElementById("questionBox").innerHTML=html;
 
- document.getElementById("prevBtn").style.display=current==0?"none":"inline-block";
- document.getElementById("nextBtn").style.display=current==29?"none":"inline-block";
- document.getElementById("submitBtn").style.display=current==29?"inline-block":"none";
+ prevBtn.style.display=current==0?"none":"inline-block";
+ nextBtn.style.display=current==29?"none":"inline-block";
+ submitBtn.style.display=current==29?"inline-block":"none";
  updateMap();
 }
 
 /* ===== MAP ===== */
 function updateMap(){
- const map=document.getElementById("map");
  map.innerHTML="";
  answers.forEach((a,i)=>{
   let color="#ccc";
@@ -137,21 +141,27 @@ function updateMap(){
 }
 
 /* ===== NAV ===== */
-function nextQuestion(){current++;render();}
-function prevQuestion(){current--;render();}
+function nextQuestion(){ if(current<29){current++;render();}}
+function prevQuestion(){ if(current>0){current--;render();}}
 
 /* ===== TIMER ===== */
 let t=30*60;
-setInterval(()=>{
+let submitted=false;
+const timer=setInterval(()=>{
+ if(submitted) return;
  t--;
- if(t<=0) submitExam();
  let m=Math.floor(t/60),s=t%60;
- document.getElementById("time").innerText=
- String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+ time.innerText=
+  String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+ if(t<=0) submitExam();
 },1000);
 
 /* ===== SUBMIT ===== */
 function submitExam(){
+ if(submitted) return;
+ submitted=true;
+ clearInterval(timer);
+
  let correct=0;
  questions.forEach((q,i)=>{if(answers[i]==q.c)correct++;});
  const pass=correct>=27;
