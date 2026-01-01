@@ -29,7 +29,7 @@ align-items:center;
 </div>
 
 <div style="font-size:18px;color:red;">
-⏱ Thời gian còn lạilại: ⏱ Thờ  g=an còn 30:00<span i
+⏱ Thời gian còn lại: <span id="time">30:00</span>
 </div>
 
 </div>
@@ -93,7 +93,6 @@ const questions = [
   }
 ];
 
-// Nhân bản thành 30 câu
 while (questions.length < 30) {
   questions.push(JSON.parse(JSON.stringify(questions[questions.length % 2])));
 }
@@ -121,17 +120,28 @@ questions.forEach((item, index) => {
 
 /* ===== ĐẾM GIỜ ===== */
 let time = 30 * 60;
-setInterval(() => {
+let submitted = false;
+
+const timer = setInterval(() => {
+  if (submitted) return;
+
   time--;
-  if (time <= 0) submitExam();
   const m = Math.floor(time / 60);
   const s = time % 60;
   document.getElementById("time").innerText =
     String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+
+  if (time <= 0) {
+    submitExam();
+  }
 }, 1000);
 
-/* ===== NỘP BÀI & GHI LOG ===== */
+/* ===== NỘP BÀI ===== */
 function submitExam() {
+  if (submitted) return;
+  submitted = true;
+  clearInterval(timer);
+
   let correct = 0;
 
   questions.forEach((q, i) => {
