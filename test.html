@@ -12,16 +12,17 @@
 position:fixed;
 top:0;left:0;right:0;
 background:#a8dadc;
-padding:18px;
+padding:18px 30px;
 display:flex;
-justify-content:space-between;
+justify-content:flex-start;
 align-items:center;
+gap:50px;
 z-index:1000;
 box-shadow:0 2px 10px rgba(0,0,0,0.3);
 ">
 
 <!-- STUDENT INFO -->
-<div style="flex:1;text-align:center;">
+<div>
 <div id="studentName" style="font-size:20px;font-weight:bold;"></div>
 <div id="studentInfo" style="font-size:15px;margin-top:3px;"></div>
 </div>
@@ -103,6 +104,19 @@ margin-top:35px;
 justify-items:center;
 "></div>
 
+<!-- LEGEND -->
+<div style="
+margin-top:20px;
+display:flex;
+justify-content:center;
+gap:25px;
+font-size:14px;
+">
+<div><span style="display:inline-block;width:18px;height:18px;background:#fff;border:1px solid #999;"></span> Chưa làm</div>
+<div><span style="display:inline-block;width:18px;height:18px;background:#457b9d;"></span> Đã làm</div>
+<div><span style="display:inline-block;width:18px;height:18px;background:#e63946;"></span> Câu hiện tại</div>
+</div>
+
 </div>
 
 <!-- Firebase -->
@@ -127,7 +141,7 @@ const db = firebase.firestore();
 /* ===== USER ===== */
 const name = localStorage.getItem("studentName") || "Khách";
 const code = localStorage.getItem("studentCode") || "---";
-const unit = localStorage.getItem("studentUnit") || "Chưa xác định";
+const unit = localStorage.getItem("studentUnit") || "Chưa cập nhật";
 
 studentName.innerText = name;
 studentInfo.innerText = `Mã HV: ${code} – Đơn vị: ${unit}`;
