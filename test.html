@@ -37,6 +37,7 @@ body{
 
 #studentBox span{
  font-size:14px;
+ opacity:.85;
 }
 
 #timer{
@@ -66,10 +67,14 @@ body{
 .answer{
  display:block;
  margin-bottom:12px;
- padding:10px;
+ padding:12px;
  border-radius:6px;
  cursor:pointer;
  background:#f4f6f8;
+}
+
+.answer:hover{
+ background:#e9ecef;
 }
 
 /* ===== NAV ===== */
@@ -81,8 +86,8 @@ body{
 }
 
 .navBtn{
- font-size:20px;
- padding:16px 34px;
+ font-size:18px;
+ padding:14px 30px;
  border:none;
  border-radius:10px;
  cursor:pointer;
@@ -130,7 +135,7 @@ body{
  <div style="width:160px;"></div>
 
  <div id="studentBox">
-  <b id="studentName"></b>
+  <b id="studentName">Đang tải...</b>
   <span id="studentInfo"></span>
  </div>
 
@@ -185,15 +190,19 @@ const db = firebase.firestore();
 
 /* ===== USER ===== */
 const studentCode = localStorage.getItem("studentCode") || "KHÁCH";
-const studentName = localStorage.getItem("studentName") || "Khách";
+const studentNameVal = localStorage.getItem("studentName") || "Khách";
 const unit = localStorage.getItem("unit") || "Tự do";
 
-studentNameEl.innerText = "👤 " + studentName;
-studentInfo.innerText = "Mã HV: " + studentCode + " | Đơn vị: " + unit;
+const studentNameEl = document.getElementById("studentName");
+const studentInfoEl = document.getElementById("studentInfo");
+
+studentNameEl.innerText = "👤 " + studentNameVal;
+studentInfoEl.innerText = `Mã HV: ${studentCode} | Đơn vị: ${unit}`;
 
 /* ===== QUESTIONS ===== */
 let questions = [];
 let current = 0;
+let loaded = false;
 const answers = new Array(30).fill(null);
 
 /* ===== LOAD QUESTIONS FROM FIRESTORE ===== */
@@ -220,11 +229,14 @@ db.collection("questions")
 
   temp.sort(() => Math.random() - 0.5);
   questions = temp.slice(0,30);
+  loaded = true;
   render();
  });
 
 /* ===== RENDER ===== */
 function render(){
+ if(!loaded) return;
+
  const q = questions[current];
  let html = `
  <b>Câu ${current+1}/30:</b><br><br>
@@ -250,7 +262,7 @@ function render(){
 
  questionBox.innerHTML = html;
 
- prevBtn.style.display = current>=1 ? "inline-block" : "none";
+ prevBtn.style.display = current>0 ? "inline-block" : "none";
  nextBtn.style.display = current<29 ? "inline-block" : "none";
  submitBtn.style.display = current==29 ? "inline-block" : "none";
 
@@ -276,28 +288,41 @@ function updateMap(){
 }
 
 /* ===== NAV ===== */
-function nextQuestion(){current++;render();}
-function prevQuestion(){current--;render();}
+function nextQuestion(){
+ if(!loaded || current>=29) return;
+ current++; render();
+}
+
+function prevQuestion(){
+ if(!loaded || current<=0) return;
+ current--; render();
+}
 
 /* ===== TIMER ===== */
+const timer = document.getElementById("timer");
 let t=30*60, submitted=false;
+
 const clock=setInterval(()=>{
  if(submitted) return;
  t--;
  timer.innerText =
-  String(Math.floor(t/60)).padStart(2,"0") + ":" +
+  String(Math.floor(t/60)).padStart(2,"0")+":"+
   String(t%60).padStart(2,"0");
+
  if(t<=0) submitExam();
 },1000);
 
 /* ===== SUBMIT ===== */
 function submitExam(){
- if(submitted) return;
+ if(submitted || !loaded) return;
  submitted=true;
  clearInterval(clock);
 
  let correct=0;
- questions.forEach((q,i)=>{if(answers[i]==q.c) correct++;});
+ questions.forEach((q,i)=>{
+  if(answers[i]===q.c) correct++;
+ });
+
  const pass = correct>=27;
 
  db.collection("exam_logs").add({
