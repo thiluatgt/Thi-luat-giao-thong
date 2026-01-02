@@ -37,7 +37,6 @@ body{
 
 #studentBox span{
  font-size:14px;
- opacity:.85;
 }
 
 #timer{
@@ -61,47 +60,29 @@ body{
  padding:30px;
  border-radius:12px;
  box-shadow:0 5px 20px rgba(0,0,0,0.15);
- min-height:480px;
+ min-height:520px;
 }
 
+/* ANSWER */
 .answer{
  display:block;
  margin-bottom:12px;
- padding:12px;
+ padding:10px;
  border-radius:6px;
  cursor:pointer;
  background:#f4f6f8;
 }
 
-.answer:hover{
- background:#e9ecef;
-}
-
-/* ===== NAV ===== */
-#nav{
- display:flex;
- justify-content:center;
- gap:40px;
- margin-top:25px;
-}
-
-.navBtn{
- font-size:18px;
- padding:14px 30px;
- border:none;
- border-radius:10px;
- cursor:pointer;
-}
-
-#prevBtn{background:#457b9d;color:white;}
-#nextBtn{background:#1d3557;color:white;}
-#submitBtn{background:#e63946;color:white;display:none;}
-
-/* ===== MAP ===== */
+/* ===== SIDE ===== */
 #side{
  flex:1;
+ background:#ffffff;
+ padding:15px;
+ border-radius:12px;
+ box-shadow:0 5px 20px rgba(0,0,0,0.15);
 }
 
+/* MAP */
 #map{
  display:grid;
  grid-template-columns:repeat(5,1fr);
@@ -120,6 +101,28 @@ body{
  border:1px solid #ccc;
 }
 
+/* NAV IN SIDE */
+#sideNav{
+ display:flex;
+ flex-direction:column;
+ gap:12px;
+ margin-top:20px;
+}
+
+.sideBtn{
+ font-size:16px;
+ padding:12px;
+ border:none;
+ border-radius:8px;
+ cursor:pointer;
+ width:100%;
+}
+
+#prevBtn{background:#457b9d;color:white;}
+#nextBtn{background:#1d3557;color:white;}
+#submitBtn{background:#e63946;color:white;display:none;}
+
+/* LEGEND */
 .legend{
  margin-top:15px;
  font-size:13px;
@@ -135,7 +138,7 @@ body{
  <div style="width:160px;"></div>
 
  <div id="studentBox">
-  <b id="studentName">Đang tải...</b>
+  <b id="studentName"></b>
   <span id="studentInfo"></span>
  </div>
 
@@ -145,19 +148,14 @@ body{
 <!-- ===== MAIN ===== -->
 <div id="main">
 
- <!-- QUESTION -->
+ <!-- QUESTION CONTENT -->
  <div id="content">
   <div id="questionBox"></div>
-
-  <div id="nav">
-   <button id="prevBtn" class="navBtn" onclick="prevQuestion()">⬅ Câu trước</button>
-   <button id="nextBtn" class="navBtn" onclick="nextQuestion()">Câu tiếp theo ➡</button>
-   <button id="submitBtn" class="navBtn" onclick="submitExam()">📤 NỘP BÀI</button>
-  </div>
  </div>
 
- <!-- SIDE -->
+ <!-- SIDE PANEL -->
  <div id="side">
+
   <div id="map"></div>
 
   <div class="legend">
@@ -165,6 +163,14 @@ body{
    <div style="color:#457b9d;">🟦 Đã làm</div>
    <div style="color:#e63946;">🟥 Câu hiện tại</div>
   </div>
+
+  <!-- NAVIGATION -->
+  <div id="sideNav">
+   <button id="prevBtn" class="sideBtn" onclick="prevQuestion()">⬅ Câu trước</button>
+   <button id="nextBtn" class="sideBtn" onclick="nextQuestion()">Câu tiếp theo ➡</button>
+   <button id="submitBtn" class="sideBtn" onclick="submitExam()">📤 NỘP BÀI</button>
+  </div>
+
  </div>
 
 </div>
@@ -190,68 +196,56 @@ const db = firebase.firestore();
 
 /* ===== USER ===== */
 const studentCode = localStorage.getItem("studentCode") || "KHÁCH";
-const studentNameVal = localStorage.getItem("studentName") || "Khách";
+const studentName = localStorage.getItem("studentName") || "Khách";
 const unit = localStorage.getItem("unit") || "Tự do";
 
-const studentNameEl = document.getElementById("studentName");
-const studentInfoEl = document.getElementById("studentInfo");
-
-studentNameEl.innerText = "👤 " + studentNameVal;
-studentInfoEl.innerText = `Mã HV: ${studentCode} | Đơn vị: ${unit}`;
+studentName.innerText = "👤 " + studentName;
+studentInfo.innerText = "Mã HV: " + studentCode + " | Đơn vị: " + unit;
 
 /* ===== QUESTIONS ===== */
 let questions = [];
 let current = 0;
-let loaded = false;
 const answers = new Array(30).fill(null);
 
-/* ===== LOAD QUESTIONS FROM FIRESTORE ===== */
+/* LOAD QUESTIONS */
 db.collection("questions")
- .where("active", "==", true)
+ .where("active","==",true)
  .get()
- .then(snapshot => {
-
-  if(snapshot.size < 30){
-   alert("⚠️ Hệ thống chưa đủ 30 câu hỏi");
+ .then(snap=>{
+  if(snap.size < 30){
+   alert("⚠️ Chưa đủ 30 câu hỏi");
    return;
   }
-
-  let temp = [];
-  snapshot.forEach(doc => {
-   const d = doc.data();
+  let temp=[];
+  snap.forEach(doc=>{
+   const d=doc.data();
    temp.push({
-    q: d.question,
-    img: d.image || "",
-    a: d.answers,
-    c: d.correct
+    q:d.question,
+    img:d.image||"",
+    a:d.answers,
+    c:d.correct
    });
   });
-
-  temp.sort(() => Math.random() - 0.5);
-  questions = temp.slice(0,30);
-  loaded = true;
+  temp.sort(()=>Math.random()-0.5);
+  questions=temp.slice(0,30);
   render();
  });
 
 /* ===== RENDER ===== */
 function render(){
- if(!loaded) return;
-
- const q = questions[current];
- let html = `
+ const q=questions[current];
+ let html=`
  <b>Câu ${current+1}/30:</b><br><br>
  <div>${q.q}</div>
  `;
-
  if(q.img){
-  html += `
+  html+=`
   <div style="text-align:center;margin:15px 0;">
-   <img src="${q.img}" style="max-width:100%;max-height:260px;border-radius:8px;">
+   <img src="${q.img}" style="max-width:100%;max-height:280px;border-radius:8px;">
   </div>`;
  }
-
  q.a.forEach((x,i)=>{
-  html += `
+  html+=`
   <label class="answer">
    <input type="radio" name="ans"
     ${answers[current]==i?"checked":""}
@@ -259,12 +253,11 @@ function render(){
    ${x}
   </label>`;
  });
+ questionBox.innerHTML=html;
 
- questionBox.innerHTML = html;
-
- prevBtn.style.display = current>0 ? "inline-block" : "none";
- nextBtn.style.display = current<29 ? "inline-block" : "none";
- submitBtn.style.display = current==29 ? "inline-block" : "none";
+ prevBtn.style.display=current>=1?"block":"none";
+ nextBtn.style.display=current<29?"block":"none";
+ submitBtn.style.display=current==29?"block":"none";
 
  updateMap();
 }
@@ -287,43 +280,30 @@ function updateMap(){
  });
 }
 
-/* ===== NAV ===== */
-function nextQuestion(){
- if(!loaded || current>=29) return;
- current++; render();
-}
-
-function prevQuestion(){
- if(!loaded || current<=0) return;
- current--; render();
-}
+/* NAV */
+function nextQuestion(){current++;render();}
+function prevQuestion(){current--;render();}
 
 /* ===== TIMER ===== */
-const timer = document.getElementById("timer");
 let t=30*60, submitted=false;
-
 const clock=setInterval(()=>{
- if(submitted) return;
+ if(submitted)return;
  t--;
- timer.innerText =
+ timer.innerText=
   String(Math.floor(t/60)).padStart(2,"0")+":"+
   String(t%60).padStart(2,"0");
-
  if(t<=0) submitExam();
 },1000);
 
 /* ===== SUBMIT ===== */
 function submitExam(){
- if(submitted || !loaded) return;
+ if(submitted)return;
  submitted=true;
  clearInterval(clock);
 
  let correct=0;
- questions.forEach((q,i)=>{
-  if(answers[i]===q.c) correct++;
- });
-
- const pass = correct>=27;
+ questions.forEach((q,i)=>{if(answers[i]==q.c)correct++;});
+ const pass=correct>=27;
 
  db.collection("exam_logs").add({
   code:studentCode,
