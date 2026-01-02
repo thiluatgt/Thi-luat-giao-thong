@@ -32,6 +32,7 @@ body{
 
 #studentBox b{
  font-size:18px;
+ display:block;
 }
 
 #studentBox span{
@@ -39,17 +40,17 @@ body{
 }
 
 #timer{
- font-size:30px;
+ font-size:32px;
  font-weight:bold;
 }
 
 /* ===== MAIN ===== */
 #main{
- max-width:1000px;
+ max-width:1100px;
  margin:120px auto 40px;
  padding:0 20px;
  display:flex;
- gap:20px;
+ gap:25px;
 }
 
 /* ===== QUESTION ===== */
@@ -57,9 +58,9 @@ body{
  flex:3;
  background:white;
  padding:30px;
- border-radius:10px;
+ border-radius:12px;
  box-shadow:0 5px 20px rgba(0,0,0,0.15);
- min-height:420px;
+ min-height:480px;
 }
 
 .answer{
@@ -75,15 +76,15 @@ body{
 #nav{
  display:flex;
  justify-content:center;
- gap:30px;
+ gap:40px;
  margin-top:25px;
 }
 
 .navBtn{
- font-size:18px;
- padding:14px 28px;
+ font-size:20px;
+ padding:16px 34px;
  border:none;
- border-radius:8px;
+ border-radius:10px;
  cursor:pointer;
 }
 
@@ -99,13 +100,13 @@ body{
 #map{
  display:grid;
  grid-template-columns:repeat(5,1fr);
- gap:6px;
+ gap:8px;
 }
 
 .mapItem{
- width:32px;
- height:32px;
- border-radius:5px;
+ width:34px;
+ height:34px;
+ border-radius:6px;
  display:flex;
  align-items:center;
  justify-content:center;
@@ -126,10 +127,10 @@ body{
 
 <!-- ===== HEADER ===== -->
 <div id="header">
- <div style="width:150px;"></div>
+ <div style="width:160px;"></div>
 
  <div id="studentBox">
-  <b id="studentName"></b><br>
+  <b id="studentName"></b>
   <span id="studentInfo"></span>
  </div>
 
@@ -190,46 +191,55 @@ const unit = localStorage.getItem("unit") || "Tự do";
 studentNameEl.innerText = "👤 " + studentName;
 studentInfo.innerText = "Mã HV: " + studentCode + " | Đơn vị: " + unit;
 
-/* ===== QUESTIONS (CÓ ẢNH) ===== */
-const base = [
- {
-  q:"Biển báo nào là biển cấm đi ngược chiều?",
-  img:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Vietnam_road_sign_P102.svg/200px-Vietnam_road_sign_P102.svg.png",
-  a:["Biển A","Biển B","Biển C","Biển D"],
-  c:0
- },
- {
-  q:"Người điều khiển xe mô tô phải đủ bao nhiêu tuổi?",
-  a:["16","18","20","21"],
-  c:1
- }
-];
+/* ===== QUESTIONS ===== */
+let questions = [];
+let current = 0;
+const answers = new Array(30).fill(null);
 
-const questions=[];
-while(questions.length<30){
- questions.push(JSON.parse(JSON.stringify(base[questions.length%base.length])));
-}
+/* ===== LOAD QUESTIONS FROM FIRESTORE ===== */
+db.collection("questions")
+ .where("active", "==", true)
+ .get()
+ .then(snapshot => {
 
-let current=0;
-const answers=new Array(30).fill(null);
+  if(snapshot.size < 30){
+   alert("⚠️ Hệ thống chưa đủ 30 câu hỏi");
+   return;
+  }
+
+  let temp = [];
+  snapshot.forEach(doc => {
+   const d = doc.data();
+   temp.push({
+    q: d.question,
+    img: d.image || "",
+    a: d.answers,
+    c: d.correct
+   });
+  });
+
+  temp.sort(() => Math.random() - 0.5);
+  questions = temp.slice(0,30);
+  render();
+ });
 
 /* ===== RENDER ===== */
 function render(){
- const q=questions[current];
- let html=`
+ const q = questions[current];
+ let html = `
  <b>Câu ${current+1}/30:</b><br><br>
  <div>${q.q}</div>
  `;
 
  if(q.img){
-  html+=`
+  html += `
   <div style="text-align:center;margin:15px 0;">
    <img src="${q.img}" style="max-width:100%;max-height:260px;border-radius:8px;">
   </div>`;
  }
 
  q.a.forEach((x,i)=>{
-  html+=`
+  html += `
   <label class="answer">
    <input type="radio" name="ans"
     ${answers[current]==i?"checked":""}
@@ -238,11 +248,11 @@ function render(){
   </label>`;
  });
 
- questionBox.innerHTML=html;
+ questionBox.innerHTML = html;
 
- prevBtn.style.display=current>=1?"inline-block":"none";
- nextBtn.style.display=current<29?"inline-block":"none";
- submitBtn.style.display=current==29?"inline-block":"none";
+ prevBtn.style.display = current>=1 ? "inline-block" : "none";
+ nextBtn.style.display = current<29 ? "inline-block" : "none";
+ submitBtn.style.display = current==29 ? "inline-block" : "none";
 
  updateMap();
 }
@@ -270,25 +280,25 @@ function nextQuestion(){current++;render();}
 function prevQuestion(){current--;render();}
 
 /* ===== TIMER ===== */
-let t=30*60,submitted=false;
-const timer=setInterval(()=>{
- if(submitted)return;
+let t=30*60, submitted=false;
+const clock=setInterval(()=>{
+ if(submitted) return;
  t--;
- timer.innerText=
- String(Math.floor(t/60)).padStart(2,"0")+":"+
- String(t%60).padStart(2,"0");
- if(t<=0)submitExam();
+ timer.innerText =
+  String(Math.floor(t/60)).padStart(2,"0") + ":" +
+  String(t%60).padStart(2,"0");
+ if(t<=0) submitExam();
 },1000);
 
 /* ===== SUBMIT ===== */
 function submitExam(){
- if(submitted)return;
+ if(submitted) return;
  submitted=true;
- clearInterval(timer);
+ clearInterval(clock);
 
  let correct=0;
- questions.forEach((q,i)=>{if(answers[i]==q.c)correct++;});
- const pass=correct>=27;
+ questions.forEach((q,i)=>{if(answers[i]==q.c) correct++;});
+ const pass = correct>=27;
 
  db.collection("exam_logs").add({
   code:studentCode,
@@ -297,12 +307,10 @@ function submitExam(){
   pass:pass,
   timestamp:firebase.firestore.FieldValue.serverTimestamp()
  }).then(()=>{
-  alert(`KẾT QUẢ\n${correct}/30\n${pass?"ĐẠT":"KHÔNG ĐẠT"}`);
+  alert(`KẾT QUẢ\n${correct}/30\n${pass?"✅ ĐẠT":"❌ KHÔNG ĐẠT"}`);
   location.href="exam.html";
  });
 }
-
-render();
 </script>
 
 </body>
