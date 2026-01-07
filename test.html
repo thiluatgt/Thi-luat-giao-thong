@@ -7,11 +7,9 @@
 <style>
 body{
  margin:0;
- font-family:Arial, Helvetica, sans-serif;
+ font-family:Arial;
  background:#eef2f6;
 }
-
-/* ===== HEADER ===== */
 #header{
  position:fixed;
  top:0;left:0;right:0;
@@ -24,27 +22,8 @@ body{
  padding:0 40px;
  z-index:1000;
 }
-
-#studentBox{
- text-align:center;
- line-height:1.4;
-}
-
-#studentBox b{
- font-size:18px;
- display:block;
-}
-
-#studentBox span{
- font-size:14px;
-}
-
-#timer{
- font-size:32px;
- font-weight:bold;
-}
-
-/* ===== MAIN ===== */
+#studentBox{text-align:center;}
+#timer{font-size:30px;font-weight:bold;}
 #main{
  max-width:1100px;
  margin:120px auto 40px;
@@ -52,201 +31,188 @@ body{
  display:flex;
  gap:25px;
 }
-
-/* ===== QUESTION ===== */
 #content{
  flex:3;
  background:white;
  padding:30px;
  border-radius:12px;
- box-shadow:0 5px 20px rgba(0,0,0,0.15);
  min-height:520px;
+ box-shadow:0 5px 20px rgba(0,0,0,0.15);
 }
-
-/* ANSWER */
-.answer{
- display:block;
- margin-bottom:12px;
- padding:10px;
- border-radius:6px;
- cursor:pointer;
- background:#f4f6f8;
-}
-
-/* ===== SIDE ===== */
 #side{
  flex:1;
- background:#ffffff;
+ background:white;
  padding:15px;
  border-radius:12px;
  box-shadow:0 5px 20px rgba(0,0,0,0.15);
 }
-
-/* MAP */
+.answer{
+ display:block;
+ margin-bottom:10px;
+ padding:10px;
+ border-radius:6px;
+ background:#f4f6f8;
+ cursor:pointer;
+}
 #map{
  display:grid;
  grid-template-columns:repeat(5,1fr);
  gap:8px;
 }
-
 .mapItem{
- width:34px;
- height:34px;
+ width:34px;height:34px;
  border-radius:6px;
  display:flex;
  align-items:center;
  justify-content:center;
- font-size:13px;
  cursor:pointer;
  border:1px solid #ccc;
 }
-
-/* NAV IN SIDE */
 #sideNav{
+ margin-top:20px;
  display:flex;
  flex-direction:column;
  gap:12px;
- margin-top:20px;
 }
-
 .sideBtn{
- font-size:16px;
  padding:12px;
+ font-size:16px;
  border:none;
  border-radius:8px;
  cursor:pointer;
- width:100%;
 }
-
 #prevBtn{background:#457b9d;color:white;}
 #nextBtn{background:#1d3557;color:white;}
 #submitBtn{background:#e63946;color:white;display:none;}
-
-/* LEGEND */
-.legend{
- margin-top:15px;
- font-size:13px;
+/* ===== SELECT SET ===== */
+#setBox{
+ max-width:600px;
+ margin:160px auto;
+ background:white;
+ padding:30px;
+ border-radius:12px;
+ box-shadow:0 5px 20px rgba(0,0,0,0.2);
 }
-.legend div{margin-bottom:4px;}
+.setItem{
+ border:1px solid #ccc;
+ padding:15px;
+ border-radius:8px;
+ margin-bottom:15px;
+ cursor:pointer;
+}
+.setItem:hover{background:#f1f5f9;}
 </style>
 </head>
 
 <body>
 
-<!-- ===== HEADER ===== -->
 <div id="header">
- <div style="width:160px;"></div>
-
+ <div></div>
  <div id="studentBox">
-  <b id="studentName"></b>
+  <b id="studentName"></b><br>
   <span id="studentInfo"></span>
  </div>
-
  <div id="timer">30:00</div>
 </div>
 
-<!-- ===== MAIN ===== -->
-<div id="main">
+<!-- ===== CHỌN BỘ ĐỀ ===== -->
+<div id="setBox">
+ <h2>📚 CHỌN BỘ CÂU HỎI</h2>
+ <div id="setList"></div>
+</div>
 
- <!-- QUESTION CONTENT -->
+<!-- ===== MAIN EXAM ===== -->
+<div id="main" style="display:none;">
  <div id="content">
   <div id="questionBox"></div>
  </div>
 
- <!-- SIDE PANEL -->
  <div id="side">
-
   <div id="map"></div>
 
-  <div class="legend">
-   <div>⬜ Chưa làm</div>
-   <div style="color:#457b9d;">🟦 Đã làm</div>
-   <div style="color:#e63946;">🟥 Câu hiện tại</div>
-  </div>
-
-  <!-- NAVIGATION -->
   <div id="sideNav">
    <button id="prevBtn" class="sideBtn" onclick="prevQuestion()">⬅ Câu trước</button>
    <button id="nextBtn" class="sideBtn" onclick="nextQuestion()">Câu tiếp theo ➡</button>
    <button id="submitBtn" class="sideBtn" onclick="submitExam()">📤 NỘP BÀI</button>
   </div>
-
  </div>
-
 </div>
 
-<!-- ===== FIREBASE ===== -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-/* ===== LOGIN CHECK ===== */
-if(!localStorage.getItem("userType")){
- alert("Bạn chưa đăng nhập");
- location.href="index.html";
-}
-
-/* ===== FIREBASE ===== */
 firebase.initializeApp({
- apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
- authDomain: "thi-luat-giao-thong.firebaseapp.com",
- projectId: "thi-luat-giao-thong"
+ apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+ authDomain:"thi-luat-giao-thong.firebaseapp.com",
+ projectId:"thi-luat-giao-thong"
 });
-const db = firebase.firestore();
+const db=firebase.firestore();
 
-/* ===== USER ===== */
-const studentCode = localStorage.getItem("studentCode") || "KHÁCH";
-const studentName = localStorage.getItem("studentName") || "Khách";
-const unit = localStorage.getItem("unit") || "Tự do";
+/* USER */
+const studentCode=localStorage.getItem("studentCode")||"KHÁCH";
+const studentName=localStorage.getItem("studentName")||"Khách";
+const unit=localStorage.getItem("unit")||"Tự do";
+studentName.innerText="👤 "+studentName;
+studentInfo.innerText="Mã HV: "+studentCode+" | "+unit;
 
-studentName.innerText = "👤 " + studentName;
-studentInfo.innerText = "Mã HV: " + studentCode + " | Đơn vị: " + unit;
-
-/* ===== QUESTIONS ===== */
-let questions = [];
-let current = 0;
-const answers = new Array(30).fill(null);
-
-/* LOAD QUESTIONS */
-db.collection("questions")
- .where("active","==",true)
- .get()
- .then(snap=>{
-  if(snap.size < 30){
-   alert("⚠️ Chưa đủ 30 câu hỏi");
-   return;
-  }
-  let temp=[];
-  snap.forEach(doc=>{
-   const d=doc.data();
-   temp.push({
-    q:d.question,
-    img:d.image||"",
-    a:d.answers,
-    c:d.correct
-   });
-  });
-  temp.sort(()=>Math.random()-0.5);
-  questions=temp.slice(0,30);
-  render();
+/* ===== LOAD SETS ===== */
+db.collection("question_sets").where("active","==",true).get()
+.then(snap=>{
+ snap.forEach(doc=>{
+  const s=doc.data();
+  const div=document.createElement("div");
+  div.className="setItem";
+  div.innerHTML=`<b>${s.name}</b><br><small>${s.description}</small>`;
+  div.onclick=()=>selectSet(s.code);
+  setList.appendChild(div);
  });
+});
+
+/* ===== EXAM ===== */
+let questions=[],answers=[],current=0;
+
+function selectSet(code){
+ document.getElementById("setBox").style.display="none";
+ document.getElementById("main").style.display="flex";
+
+ db.collection("questions")
+  .where("active","==",true)
+  .where("setCode","==",code)
+  .get()
+  .then(snap=>{
+   if(snap.size<30){
+    alert("Bộ đề chưa đủ 30 câu");
+    location.reload();
+    return;
+   }
+   let temp=[];
+   snap.forEach(d=>{
+    const q=d.data();
+    temp.push({
+     q:q.question,
+     img:q.image||"",
+     a:q.answers,
+     c:q.correct
+    });
+   });
+   temp.sort(()=>Math.random()-0.5);
+   questions=temp.slice(0,30);
+   answers=new Array(30).fill(null);
+   render();
+  });
+}
 
 /* ===== RENDER ===== */
 function render(){
  const q=questions[current];
- let html=`
- <b>Câu ${current+1}/30:</b><br><br>
- <div>${q.q}</div>
- `;
+ let html=`<b>Câu ${current+1}/30:</b><br><br>${q.q}`;
  if(q.img){
-  html+=`
-  <div style="text-align:center;margin:15px 0;">
-   <img src="${q.img}" style="max-width:100%;max-height:280px;border-radius:8px;">
-  </div>`;
+  html+=`<div style="text-align:center;margin:15px 0;">
+  <img src="${q.img}" style="max-width:100%;max-height:260px;"></div>`;
  }
  q.a.forEach((x,i)=>{
-  html+=`
-  <label class="answer">
+  html+=`<label class="answer">
    <input type="radio" name="ans"
     ${answers[current]==i?"checked":""}
     onchange="answers[${current}]=${i};updateMap()">
@@ -254,22 +220,18 @@ function render(){
   </label>`;
  });
  questionBox.innerHTML=html;
-
- prevBtn.style.display=current>=1?"block":"none";
+ prevBtn.style.display=current>0?"block":"none";
  nextBtn.style.display=current<29?"block":"none";
  submitBtn.style.display=current==29?"block":"none";
-
  updateMap();
 }
 
-/* ===== MAP ===== */
 function updateMap(){
  map.innerHTML="";
  answers.forEach((a,i)=>{
   let bg="#fff";
   if(i==current) bg="#e63946";
   else if(a!==null) bg="#457b9d";
-
   const d=document.createElement("div");
   d.className="mapItem";
   d.style.background=bg;
@@ -279,43 +241,8 @@ function updateMap(){
   map.appendChild(d);
  });
 }
-
-/* NAV */
 function nextQuestion(){current++;render();}
 function prevQuestion(){current--;render();}
-
-/* ===== TIMER ===== */
-let t=30*60, submitted=false;
-const clock=setInterval(()=>{
- if(submitted)return;
- t--;
- timer.innerText=
-  String(Math.floor(t/60)).padStart(2,"0")+":"+
-  String(t%60).padStart(2,"0");
- if(t<=0) submitExam();
-},1000);
-
-/* ===== SUBMIT ===== */
-function submitExam(){
- if(submitted)return;
- submitted=true;
- clearInterval(clock);
-
- let correct=0;
- questions.forEach((q,i)=>{if(answers[i]==q.c)correct++;});
- const pass=correct>=27;
-
- db.collection("exam_logs").add({
-  code:studentCode,
-  score:correct,
-  total:30,
-  pass:pass,
-  timestamp:firebase.firestore.FieldValue.serverTimestamp()
- }).then(()=>{
-  alert(`KẾT QUẢ\n${correct}/30\n${pass?"✅ ĐẠT":"❌ KHÔNG ĐẠT"}`);
-  location.href="exam.html";
- });
-}
 </script>
 
 </body>
