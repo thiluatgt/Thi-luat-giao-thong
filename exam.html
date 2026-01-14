@@ -5,23 +5,37 @@
 <title>HỆ THỐNG KIỂM TRA LUẬT GIAO THÔNG ĐƯỜNG BỘ</title>
 
 <style>
-body{margin:0;font-family:Arial;background:#eef2f6;}
+body{
+ margin:0;
+ font-family:Arial;
+ background:#eef2f6;
+}
 #header{
- background:#1d3557;color:white;
+ background:#1d3557;
+ color:white;
  padding:18px 30px;
- display:flex;justify-content:space-between;align-items:center;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
 }
 #logoutBtn{
- background:#e63946;color:white;
- border:none;border-radius:8px;
+ background:#e63946;
+ color:white;
+ border:none;
+ border-radius:8px;
  padding:10px 16px;
- font-size:14px;cursor:pointer;
+ font-size:14px;
+ cursor:pointer;
 }
 #container{
- max-width:1100px;margin:30px auto;padding:0 20px;
+ max-width:1100px;
+ margin:30px auto;
+ padding:0 20px;
 }
 #welcome{
- font-size:22px;margin-bottom:25px;color:#1d3557;
+ font-size:22px;
+ margin-bottom:25px;
+ color:#1d3557;
 }
 #grid{
  display:grid;
@@ -29,32 +43,55 @@ body{margin:0;font-family:Arial;background:#eef2f6;}
  gap:25px;
 }
 .box{
- background:white;padding:20px;border-radius:12px;
+ background:white;
+ padding:20px;
+ border-radius:12px;
  box-shadow:0 4px 15px rgba(0,0,0,.12);
 }
-.box h3{margin-top:0;color:#1d3557;}
-.info p{margin:8px 0;}
+.box h3{
+ margin-top:0;
+ color:#1d3557;
+}
+.info p{
+ margin:8px 0;
+}
 .statsRow{
- display:flex;gap:18px;margin-bottom:20px;
+ display:flex;
+ gap:18px;
+ margin-bottom:20px;
 }
 .statBox{
- flex:1;text-align:center;background:#f4f6f8;
- padding:18px;border-radius:10px;
+ flex:1;
+ text-align:center;
+ background:#f4f6f8;
+ padding:18px;
+ border-radius:10px;
 }
 .statBox b{
- font-size:22px;color:#1d3557;
+ font-size:22px;
+ color:#1d3557;
 }
 .actions{
- display:flex;gap:16px;justify-content:flex-end;
+ display:flex;
+ gap:16px;
+ justify-content:flex-end;
 }
 .actionBtn{
- border:none;border-radius:10px;
+ border:none;
+ border-radius:10px;
  padding:16px 22px;
- font-size:16px;cursor:pointer;
+ font-size:16px;
+ cursor:pointer;
  min-width:220px;
 }
-#startBtn{background:#2a9d8f;color:white;}
-#detailBtn{background:#457b9d;color:white;}
+#startBtn{
+ background:#2a9d8f;
+ color:white;
+}
+#detailBtn{
+ background:#457b9d;
+ color:white;
+}
 </style>
 </head>
 
@@ -75,7 +112,7 @@ body{margin:0;font-family:Arial;background:#eef2f6;}
 
  <div id="grid">
 
-  <!-- ===== INFO ===== -->
+  <!-- ===== THÔNG TIN HỌC VIÊN ===== -->
   <div class="box info">
    <h3>📘 Thông tin học viên</h3>
    <p><b>Mã học viên:</b> <span id="infoCode"></span></p>
@@ -84,7 +121,7 @@ body{margin:0;font-family:Arial;background:#eef2f6;}
    <p><b>Trạng thái:</b> <span id="infoStatus">Hoạt động</span></p>
   </div>
 
-  <!-- ===== STATS ===== -->
+  <!-- ===== THỐNG KÊ + HÀNH ĐỘNG ===== -->
   <div class="box">
    <h3>📊 Thống kê kết quả</h3>
 
@@ -103,7 +140,6 @@ body{margin:0;font-family:Arial;background:#eef2f6;}
     </div>
    </div>
 
-   <!-- ===== ACTION BUTTONS ===== -->
    <div class="actions">
     <button id="detailBtn" class="actionBtn" onclick="viewDetail()">
      📄 THỐNG KÊ CHI TIẾT
@@ -112,7 +148,6 @@ body{margin:0;font-family:Arial;background:#eef2f6;}
      ▶ LÀM BÀI KIỂM TRA
     </button>
    </div>
-
   </div>
 
  </div>
@@ -120,4 +155,30 @@ body{margin:0;font-family:Arial;background:#eef2f6;}
 </div>
 
 <!-- ===== FIREBASE ===== -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/fireba
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+/* ===== FIREBASE INIT ===== */
+firebase.initializeApp({
+ apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+ authDomain:"thi-luat-giao-thong.firebaseapp.com",
+ projectId:"thi-luat-giao-thong"
+});
+const db=firebase.firestore();
+
+/* ===== LOGIN CHECK ===== */
+if(localStorage.getItem("userType")!=="student"){
+ alert("Bạn chưa đăng nhập");
+ window.location.href="index.html";
+}
+
+/* ===== LOAD USER INFO ===== */
+const code=localStorage.getItem("studentCode");
+const name=localStorage.getItem("studentName");
+const unit=localStorage.getItem("unit")||"";
+
+document.getElementById("studentName").innerText=name;
+document.getElementById("infoCode").innerText=code;
+document.getElementById("infoName").innerText=name;
+document.getElementByI
