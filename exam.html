@@ -168,7 +168,7 @@ firebase.initializeApp({
 const db=firebase.firestore();
 
 /* ===== LOGIN CHECK ===== */
-if(localStorage.getItem("userType")!=="students"){
+if(localStorage.getItem("userType")!=="student"){
  alert("Bạn chưa đăng nhập");
  window.location.href="index.html";
 }
@@ -181,4 +181,39 @@ const unit=localStorage.getItem("unit")||"";
 document.getElementById("studentName").innerText=name;
 document.getElementById("infoCode").innerText=code;
 document.getElementById("infoName").innerText=name;
-document.getElementByI
+document.getElementById("infoUnit").innerText=unit;
+
+/* ===== LOAD STATISTICS ===== */
+db.collection("exam_logs")
+ .where("code","==",code)
+ .get()
+ .then(snapshot=>{
+  let total=snapshot.size;
+  let pass=0;
+  snapshot.forEach(doc=>{
+   if(doc.data().pass===true) pass++;
+  });
+  document.getElementById("totalExam").innerText=total;
+  document.getElementById("passExam").innerText=pass;
+  document.getElementById("rateExam").innerText=
+    total ? Math.round(pass/total*100)+"%" : "0%";
+ });
+
+/* ===== ACTIONS ===== */
+function startExam(){
+ window.location.href="test.html";
+}
+
+function viewDetail(){
+ alert("Trang thống kê chi tiết sẽ được mở ở bước tiếp theo");
+}
+
+/* ===== LOGOUT ===== */
+function logout(){
+ localStorage.clear();
+ window.location.href="index.html";
+}
+</script>
+
+</body>
+</html>
