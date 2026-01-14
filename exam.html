@@ -168,7 +168,7 @@ firebase.initializeApp({
 const db=firebase.firestore();
 
 /* ===== LOGIN CHECK ===== */
-if(localStorage.getItem("userType")!=="student"){
+if(localStorage.getItem("userType")!=="students"){
  alert("Bạn chưa đăng nhập");
  window.location.href="index.html";
 }
