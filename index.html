@@ -6,32 +6,51 @@
 
 <style>
 body{
- margin:0;font-family:Arial;
- background:url("https://i.imgur.com/1ZQZ1Zm.jpg") center/cover no-repeat;
+ margin:0;
+ font-family:Arial;
  min-height:100vh;
- display:flex;align-items:center;justify-content:center;
+ background:
+ linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,.55)),
+ url("https://images.unsplash.com/photo-1604138845907-7aa04f0f9950?auto=format&fit=crop&w=1600&q=80");
+ background-size:cover;
+ background-position:center;
+ display:flex;
+ align-items:center;
+ justify-content:center;
 }
 #loginBox{
- width:420px;background:rgba(255,255,255,.95);
- padding:30px;border-radius:12px;
- box-shadow:0 10px 30px rgba(0,0,0,.25);
+ width:460px;
+ background:rgba(255,255,255,.96);
+ padding:30px;
+ border-radius:14px;
+ box-shadow:0 15px 40px rgba(0,0,0,.35);
 }
-h2{text-align:center;color:#1d3557;}
+h2{text-align:center;color:#1d3557;line-height:1.4;}
 input{
- width:100%;padding:12px;font-size:16px;
- margin-top:15px;border-radius:6px;
+ width:100%;
+ padding:14px;
+ font-size:16px;
+ margin-top:16px;
+ border-radius:8px;
  border:1px solid #ccc;
 }
 button{
- width:100%;padding:14px;font-size:17px;
- border:none;border-radius:8px;
- cursor:pointer;margin-top:15px;
+ width:100%;
+ padding:14px;
+ font-size:17px;
+ border:none;
+ border-radius:10px;
+ cursor:pointer;
+ margin-top:16px;
 }
 #loginBtn{background:#1d3557;color:white;}
 #guestBtn{background:#457b9d;color:white;}
 .note{
- margin-top:20px;font-size:14px;color:#444;
+ margin-top:22px;
+ font-size:14px;
+ color:#444;
  text-align:center;
+ line-height:1.6;
 }
 </style>
 </head>
@@ -39,23 +58,25 @@ button{
 <body>
 
 <div id="loginBox">
- <h2>KIỂM TRA LUẬT GIAO THÔNG<br>ĐƯỜNG BỘ TRỰC TUYẾN</h2>
+ <h2>
+  HỆ THỐNG KIỂM TRA<br>
+  LUẬT GIAO THÔNG ĐƯỜNG BỘ
+ </h2>
 
- <input id="codeInput" type="text"
-  placeholder="Vui lòng nhập mã học viên (Ví dụ: HV001, 001, 01...)">
+ <input id="inputLogin" type="text"
+  placeholder="Nhập mã HV hoặc tên học viên (VD: HV001, 001, Nguyễn Văn A, Văn A...)">
 
  <button id="loginBtn">🔐 ĐĂNG NHẬP HỆ THỐNG</button>
-
  <button id="guestBtn">🧪 THI THỬ KHÔNG CẦN ĐĂNG NHẬP</button>
 
  <div class="note">
-  Bạn chưa có mã học viên? <br>
-  Bạn có thể <b>thi thử</b> để trải nghiệm. <br>
-  Để sử dụng đầy đủ chức năng, vui lòng liên hệ quản trị viên.
+  Bạn chưa có mã học viên?<br>
+  Bạn có thể <b>thi thử</b> để trải nghiệm.<br>
+  Liên hệ quản trị viên để sử dụng đầy đủ chức năng.
  </div>
 </div>
 
-<!-- Firebase -->
+<!-- ===== FIREBASE ===== -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -67,47 +88,74 @@ firebase.initializeApp({
 });
 const db=firebase.firestore();
 
-const input=document.getElementById("codeInput");
+const input=document.getElementById("inputLogin");
 const loginBtn=document.getElementById("loginBtn");
 
 /* ===== ENTER KEY ===== */
-input.addEventListener("keypress",function(e){
- if(e.key==="Enter"){
-  login();
- }
+input.addEventListener("keydown",e=>{
+ if(e.key==="Enter") login();
 });
-
-/* ===== CLICK BUTTON ===== */
 loginBtn.onclick=login;
 
-/* ===== LOGIN FUNCTION ===== */
-function normalizeCode(val){
- val=val.toUpperCase().replace("HV","");
- val=val.padStart(3,"0");
- return "HV"+val;
+/* ===== FORMAT CODE ===== */
+function normalizeCode(v){
+ v=v.toUpperCase().replace("HV","");
+ if(isNaN(v)) return null;
+ v=v.padStart(3,"0");
+ return "HV"+v;
 }
 
+/* ===== LOGIN ===== */
 function login(){
- let raw=input.value.trim();
- if(!raw){alert("Vui lòng nhập mã học viên");return;}
+ const raw=input.value.trim();
+ if(!raw){alert("Vui lòng nhập thông tin đăng nhập");return;}
 
- let code=normalizeCode(raw);
+ const tryCode=normalizeCode(raw);
 
- db.collection("students")
-  .where("code","==",code)
-  .get()
+ /* ==== 1. THỬ ĐĂNG NHẬP BẰNG MÃ HV ==== */
+ if(tryCode){
+  db.collection("students").where("code","==",tryCode).get()
   .then(snap=>{
-   if(snap.empty){
-    alert("❌ Mã học viên không tồn tại");
-    return;
+   if(!snap.empty){
+    loginSuccess(snap.docs[0].data());
+   }else{
+    loginByName(raw);
    }
-   const s=snap.docs[0].data();
-   localStorage.setItem("userType","student");
-   localStorage.setItem("studentCode",s.code);
-   localStorage.setItem("studentName",s.name);
-   localStorage.setItem("unit",s.unit||"");
-   window.location.href="exam.html";
   });
+ }else{
+  loginByName(raw);
+ }
+}
+
+/* ===== LOGIN BY NAME ===== */
+function loginByName(nameInput){
+ const keyword=nameInput.toLowerCase();
+
+ db.collection("students").get().then(snap=>{
+  let found=null;
+  snap.forEach(doc=>{
+   const s=doc.data();
+   const name=s.name.toLowerCase();
+   if(name.includes(keyword)){
+    found=s;
+   }
+  });
+
+  if(!found){
+   alert("❌ Không tìm thấy học viên phù hợp");
+   return;
+  }
+  loginSuccess(found);
+ });
+}
+
+/* ===== SUCCESS ===== */
+function loginSuccess(s){
+ localStorage.setItem("userType","student");
+ localStorage.setItem("studentCode",s.code);
+ localStorage.setItem("studentName",s.name);
+ localStorage.setItem("unit",s.unit||"");
+ window.location.href="exam.html";
 }
 
 /* ===== GUEST ===== */
@@ -116,3 +164,8 @@ guestBtn.onclick=()=>{
  localStorage.setItem("userType","guest");
  localStorage.setItem("studentName","Khách");
  window.location.href="exam.html";
+};
+</script>
+
+</body>
+</html>
