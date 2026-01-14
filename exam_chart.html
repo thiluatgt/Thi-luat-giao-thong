@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Biểu đồ thống kê - Kiểm tra luật giao thông</title>
+
+<!-- ChartJS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{
+ margin:0;
+ font-family:Arial,Helvetica,sans-serif;
+ background:linear-gradient(135deg,#eef3ff,#f9fbff);
+}
+
+/* ===== HEADER ===== */
+header{
+ background:linear-gradient(90deg,#1d3557,#264a8a);
+ color:white;
+ padding:18px 30px;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ box-shadow:0 4px 15px rgba(0,0,0,.25);
+}
+header b{
+ font-size:18px;
+}
+button{
+ border:none;
+ border-radius:10px;
+ padding:10px 18px;
+ font-size:14px;
+ cursor:pointer;
+}
+#backBtn{
+ background:#457b9d;
+ color:white;
+}
+
+/* ===== MAIN ===== */
+#container{
+ max-width:1100px;
+ margin:30px auto;
+ padding:0 20px;
+}
+h2{
+ color:#1d3557;
+ margin-bottom:25px;
+}
+
+/* ===== GRID ===== */
+.grid{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:30px;
+}
+.box{
+ background:white;
+ padding:25px;
+ border-radius:18px;
+ box-shadow:0 8px 25px rgba(0,0,0,.12);
+}
+.box h3{
+ margin-top:0;
+ margin-bottom:15px;
+ color:#1d3557;
+ text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<!-- ===== HEADER ===== -->
+<header>
+ <b>📈 BIỂU ĐỒ THỐNG KẾT QUẢ KIỂM TRA</b>
+ <button id="backBtn" onclick="back()">⬅ Quay lại trang học viên</button>
+</header>
+
+<!-- ===== CONTENT ===== -->
+<div id="container">
+
+ <h2 id="studentTitle"></h2>
+
+ <div class="grid">
+
+  <!-- BAR CHART -->
+  <div class="box">
+   <h3>📊 Số lượt kiểm tra</h3>
+   <canvas id="barChart"></canvas>
+  </div>
+
+  <!-- PIE CHART -->
+  <div class="box">
+   <h3>🥧 Tỷ lệ đạt / không đạt</h3>
+   <canvas id="pieChart"></canvas>
+  </div>
+
+ </div>
+
+</div>
+
+<!-- ===== FIREBASE ===== -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+/* ===== FIREBASE CONFIG ===== */
+firebase.initializeApp({
+ apiKey: "AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+ authDomain: "thi-luat-giao-thong.firebaseapp.com",
+ projectId: "thi-luat-giao-thong"
+});
+const db = firebase.firestore();
+
+/* ===== LOGIN CHECK ===== */
+if(localStorage.getItem("userType") !== "student"){
+ alert("Bạn chưa đăng nhập");
+ window.location.href = "index.html";
+}
+
+/* ===== USER INFO ===== */
+const code = localStorage.getItem("studentCode");
+const name = localStorage.getItem("studentName");
+document.getElementById("studentTitle").innerText =
+ "Học viên: " + name + " (" + code + ")";
+
+/* ===== BACK ===== */
+function back(){
+ window.location.href = "exam.html";
+}
+
+/* ===== LOAD DATA ===== */
+db.collection("exam_logs")
+ .where("code","==",code)
+ .get()
+ .then(snapshot=>{
+  let total = 0;
+  let pass = 0;
+  let fail = 0;
+
+  snapshot.forEach(doc=>{
+   total++;
+   if(doc.data().pass) pass++;
+   else fail++;
+  });
+
+  drawCharts(total, pass, fail);
+ });
+
+/* ===== DRAW CHARTS ===== */
+function drawCharts(total, pass, fail){
+
+ /* BAR CHART */
+ new Chart(document.getElementById("barChart"), {
+  type: "bar",
+  data: {
+   labels: ["Tổng lượt kiểm tra", "Đạt", "Không đạt"],
+   datasets: [{
+    data: [total, pass, fail],
+    backgroundColor: ["#457b9d", "#2a9d8f", "#e63946"],
+    borderRadius: 8
+   }]
+  },
+  options: {
+   plugins: {
+    legend: { display: false }
+   },
+   scales: {
+    y: { beginAtZero: true }
+   }
+  }
+ });
+
+ /* PIE CHART */
+ new Chart(document.getElementById("pieChart"), {
+  type: "pie",
+  data: {
+   labels: ["Đạt", "Không đạt"],
+   datasets: [{
+    data: [pass, fail],
+    backgroundColor: ["#2a9d8f", "#e63946"]
+   }]
+  }
+ });
+
+}
+</script>
+
+</body>
+</html>
