@@ -5,9 +5,7 @@
 <title>HỆ THỐNG KIỂM TRA LUẬT GIAO THÔNG ĐƯỜNG BỘ</title>
 
 <style>
-body{
- margin:0;font-family:Arial;background:#eef2f6;
-}
+body{margin:0;font-family:Arial;background:#eef2f6;}
 #header{
  background:#1d3557;color:white;
  padding:18px 30px;
@@ -20,14 +18,10 @@ body{
  font-size:14px;cursor:pointer;
 }
 #container{
- max-width:1100px;
- margin:30px auto;
- padding:0 20px;
+ max-width:1100px;margin:30px auto;padding:0 20px;
 }
 #welcome{
- font-size:22px;
- margin-bottom:25px;
- color:#1d3557;
+ font-size:22px;margin-bottom:25px;color:#1d3557;
 }
 #grid{
  display:grid;
@@ -35,44 +29,32 @@ body{
  gap:25px;
 }
 .box{
- background:white;
- padding:20px;
- border-radius:12px;
+ background:white;padding:20px;border-radius:12px;
  box-shadow:0 4px 15px rgba(0,0,0,.12);
 }
-.box h3{
- margin-top:0;
- color:#1d3557;
-}
+.box h3{margin-top:0;color:#1d3557;}
 .info p{margin:8px 0;}
-.stats{
- display:flex;
- justify-content:space-between;
- align-items:center;
- gap:20px;
+.statsRow{
+ display:flex;gap:18px;margin-bottom:20px;
 }
 .statBox{
- flex:1;
- text-align:center;
- background:#f4f6f8;
- padding:18px;
- border-radius:10px;
+ flex:1;text-align:center;background:#f4f6f8;
+ padding:18px;border-radius:10px;
 }
 .statBox b{
- font-size:22px;
- color:#1d3557;
+ font-size:22px;color:#1d3557;
 }
-#startBtn{
- background:#2a9d8f;
- color:white;
- border:none;
- border-radius:12px;
- padding:18px 26px;
- font-size:18px;
- cursor:pointer;
- min-width:260px;
+.actions{
+ display:flex;gap:16px;justify-content:flex-end;
 }
-#startBtn:hover{opacity:.9;}
+.actionBtn{
+ border:none;border-radius:10px;
+ padding:16px 22px;
+ font-size:16px;cursor:pointer;
+ min-width:220px;
+}
+#startBtn{background:#2a9d8f;color:white;}
+#detailBtn{background:#457b9d;color:white;}
 </style>
 </head>
 
@@ -87,7 +69,9 @@ body{
 <!-- ===== MAIN ===== -->
 <div id="container">
 
- <div id="welcome">Xin chào, <b id="studentName"></b> 👋</div>
+ <div id="welcome">
+  Xin chào, <b id="studentName"></b> 👋
+ </div>
 
  <div id="grid">
 
@@ -97,14 +81,14 @@ body{
    <p><b>Mã học viên:</b> <span id="infoCode"></span></p>
    <p><b>Họ và tên:</b> <span id="infoName"></span></p>
    <p><b>Đơn vị:</b> <span id="infoUnit"></span></p>
-   <p><b>Trạng thái:</b> <span id="infoStatus"></span></p>
+   <p><b>Trạng thái:</b> <span id="infoStatus">Hoạt động</span></p>
   </div>
 
-  <!-- ===== STATS + ACTION ===== -->
+  <!-- ===== STATS ===== -->
   <div class="box">
    <h3>📊 Thống kê kết quả</h3>
 
-   <div class="stats">
+   <div class="statsRow">
     <div class="statBox">
      <div>Số lượt thi</div>
      <b id="totalExam">0</b>
@@ -117,8 +101,14 @@ body{
      <div>Tỷ lệ đạt</div>
      <b id="rateExam">0%</b>
     </div>
+   </div>
 
-    <button id="startBtn" onclick="startExam()">
+   <!-- ===== ACTION BUTTONS ===== -->
+   <div class="actions">
+    <button id="detailBtn" class="actionBtn" onclick="viewDetail()">
+     📄 THỐNG KÊ CHI TIẾT
+    </button>
+    <button id="startBtn" class="actionBtn" onclick="startExam()">
      ▶ LÀM BÀI KIỂM TRA
     </button>
    </div>
@@ -130,58 +120,4 @@ body{
 </div>
 
 <!-- ===== FIREBASE ===== -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-<script>
-firebase.initializeApp({
- apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
- authDomain:"thi-luat-giao-thong.firebaseapp.com",
- projectId:"thi-luat-giao-thong"
-});
-const db=firebase.firestore();
-
-/* ===== LOGIN CHECK ===== */
-if(localStorage.getItem("userType")!=="student"){
- alert("Bạn chưa đăng nhập");
- window.location.href="index.html";
-}
-
-/* ===== LOAD INFO ===== */
-const code=localStorage.getItem("studentCode");
-const name=localStorage.getItem("studentName");
-const unit=localStorage.getItem("unit")||"";
-
-studentName.innerText=name;
-infoCode.innerText=code;
-infoName.innerText=name;
-infoUnit.innerText=unit;
-infoStatus.innerText="Hoạt động";
-
-/* ===== LOAD STATS ===== */
-db.collection("exam_logs")
- .where("code","==",code)
- .get()
- .then(snap=>{
-  const total=snap.size;
-  let pass=0;
-  snap.forEach(d=>{if(d.data().pass)pass++;});
-  totalExam.innerText=total;
-  passExam.innerText=pass;
-  rateExam.innerText=total?Math.round(pass/total*100)+"%":"0%";
- });
-
-/* ===== START ===== */
-function startExam(){
- window.location.href="test.html";
-}
-
-/* ===== LOGOUT ===== */
-function logout(){
- localStorage.clear();
- window.location.href="index.html";
-}
-</script>
-
-</body>
-</html>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/fireba
