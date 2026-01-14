@@ -9,7 +9,7 @@
 <style>
 body{
  margin:0;
- font-family:Arial;
+ font-family:Arial,Helvetica,sans-serif;
  background:#eef2f6;
 }
 header{
@@ -55,7 +55,6 @@ header{
 }
 .info p{margin:8px 0;}
 
-/* ===== STATS ===== */
 .statRow{
  display:flex;
  gap:15px;
@@ -73,9 +72,7 @@ header{
 .bg2{background:#2a9d8f;}
 .bg3{background:#e63946;}
 
-.tableWrap{
- margin-top:15px;
-}
+.tableWrap{margin-top:15px;}
 table{
  width:100%;
  border-collapse:collapse;
@@ -94,12 +91,11 @@ th{
 .fail{color:#e63946;font-weight:bold;}
 
 canvas{
- width:100% !important;
- height:240px !important;
+ width:100%!important;
+ height:240px!important;
  margin-top:15px;
 }
 
-/* ===== ACTIONS ===== */
 .actions{
  display:flex;
  justify-content:flex-end;
@@ -124,7 +120,7 @@ canvas{
 
 <header>
  <b>HỆ THỐNG KIỂM TRA LUẬT GIAO THÔNG</b>
- <button id="logoutBtn" onclick="logout()">Đăng xuất</button>
+ <button id="logoutBtn">Đăng xuất</button>
 </header>
 
 <div id="container">
@@ -135,7 +131,6 @@ canvas{
 
  <div class="grid">
 
-  <!-- ===== LEFT: INFO ===== -->
   <div class="box info">
    <h3>📘 Thông tin học viên</h3>
    <p><b>Mã học viên:</b> <span id="infoCode"></span></p>
@@ -144,27 +139,17 @@ canvas{
    <p><b>Trạng thái:</b> Hoạt động</p>
   </div>
 
-  <!-- ===== RIGHT: STATS ===== -->
   <div class="box">
    <h3>📊 Thống kê kết quả</h3>
 
-   <!-- SUMMARY -->
    <div class="statRow">
-    <div class="statBox bg1">
-     Tổng lượt<br><b id="totalExam">0</b>
-    </div>
-    <div class="statBox bg2">
-     Đạt<br><b id="passExam">0</b>
-    </div>
-    <div class="statBox bg3">
-     Không đạt<br><b id="failExam">0</b>
-    </div>
+    <div class="statBox bg1">Tổng lượt<br><b id="totalExam">0</b></div>
+    <div class="statBox bg2">Đạt<br><b id="passExam">0</b></div>
+    <div class="statBox bg3">Không đạt<br><b id="failExam">0</b></div>
    </div>
 
-   <!-- CHART -->
    <canvas id="chart"></canvas>
 
-   <!-- TABLE -->
    <div class="tableWrap">
     <table>
      <thead>
@@ -178,87 +163,57 @@ canvas{
     </table>
    </div>
 
-   <!-- ACTIONS -->
    <div class="actions">
-    <button id="detailBtn" class="actionBtn" onclick="viewDetail()">
-     📄 Thống kê chi tiết
-    </button>
-    <button id="startBtn" class="actionBtn" onclick="startExam()">
-     ▶ Làm bài kiểm tra
-    </button>
+    <button id="detailBtn" class="actionBtn">📄 Thống kê chi tiết</button>
+    <button id="startBtn" class="actionBtn">▶ Làm bài kiểm tra</button>
    </div>
 
   </div>
 
  </div>
-
 </div>
 
-<!-- ===== FIREBASE ===== -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
+/* ===== FIREBASE ===== */
 firebase.initializeApp({
  apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
  authDomain:"thi-luat-giao-thong.firebaseapp.com",
  projectId:"thi-luat-giao-thong"
 });
-const db=firebase.firestore();
+const db = firebase.firestore();
 
 /* ===== LOGIN CHECK ===== */
-if(localStorage.getItem("userType")!=="student"){
+if(localStorage.getItem("userType") !== "student"){
  alert("Bạn chưa đăng nhập");
- window.location.href="index.html";
+ location.href = "index.html";
 }
 
-const code=localStorage.getItem("studentCode");
-const name=localStorage.getItem("studentName");
-const unit=localStorage.getItem("unit")||"";
+/* ===== USER DATA ===== */
+const code = localStorage.getItem("studentCode");
+const name = localStorage.getItem("studentName");
+const unit = localStorage.getItem("unit") || "";
 
-studentName.innerText=name;
-infoCode.innerText=code;
-infoName.innerText=name;
-infoUnit.innerText=unit;
+if(!code || !name){
+ alert("Phiên đăng nhập đã hết hạn");
+ location.href = "index.html";
+}
 
-/* ===== LOAD STATS ===== */
-db.collection("exam_logs")
- .where("code","==",code)
- .orderBy("timestamp","desc")
- .get()
- .then(snap=>{
-  let total=0, pass=0, fail=0;
-  logTable.innerHTML="";
-  let i=1;
+/* ===== DOM ===== */
+const el = id => document.getElementById(id);
+el("studentName").innerText = name;
+el("infoCode").innerText = code;
+el("infoName").innerText = name;
+el("infoUnit").innerText = unit;
 
-  snap.forEach(doc=>{
-   const d=doc.data();
-   total++;
-   if(d.pass) pass++; else fail++;
+/* ===== CHART ===== */
+let pieChart = null;
 
-   const time=d.timestamp
-    ? new Date(d.timestamp.seconds*1000).toLocaleString("vi-VN")
-    : "";
-
-   logTable.innerHTML+=`
-    <tr>
-     <td>${i++}</td>
-     <td>${time}</td>
-     <td class="${d.pass?'pass':'fail'}">
-      ${d.pass?'ĐẠT':'KHÔNG ĐẠT'}
-     </td>
-    </tr>`;
-  });
-
-  totalExam.innerText=total;
-  passExam.innerText=pass;
-  failExam.innerText=fail;
-
-  drawChart(pass,fail);
- });
-
-function drawChart(pass,fail){
- new Chart(chart,{
+function drawChart(pass, fail){
+ if(pieChart) pieChart.destroy();
+ pieChart = new Chart(el("chart"),{
   type:"pie",
   data:{
    labels:["Đạt","Không đạt"],
@@ -267,24 +222,58 @@ function drawChart(pass,fail){
     backgroundColor:["#2a9d8f","#e63946"]
    }]
   },
-  options:{
-   responsive:true,
-   maintainAspectRatio:false
-  }
+  options:{responsive:true,maintainAspectRatio:false}
  });
 }
 
+/* ===== LOAD DATA ===== */
+db.collection("exam_logs")
+ .where("code","==",code)
+ .orderBy("timestamp","desc")
+ .get()
+ .then(snap=>{
+  let total=0, pass=0, fail=0;
+  el("logTable").innerHTML="";
+
+  let i=1;
+  snap.forEach(doc=>{
+   const d = doc.data();
+   total++;
+   d.pass ? pass++ : fail++;
+
+   const time = d.timestamp
+    ? new Date(d.timestamp.seconds*1000).toLocaleString("vi-VN")
+    : "";
+
+   el("logTable").insertAdjacentHTML("beforeend",`
+    <tr>
+     <td>${i++}</td>
+     <td>${time}</td>
+     <td class="${d.pass?'pass':'fail'}">
+      ${d.pass?'ĐẠT':'KHÔNG ĐẠT'}
+     </td>
+    </tr>
+   `);
+  });
+
+  el("totalExam").innerText = total;
+  el("passExam").innerText = pass;
+  el("failExam").innerText = fail;
+
+  drawChart(pass, fail);
+ })
+ .catch(err=>{
+  console.error(err);
+  alert("Không tải được dữ liệu thống kê");
+ });
+
 /* ===== ACTIONS ===== */
-function startExam(){
- window.location.href="test.html";
-}
-function viewDetail(){
- window.location.href="exam_detail.html";
-}
-function logout(){
+el("logoutBtn").onclick = ()=>{
  localStorage.clear();
- window.location.href="index.html";
-}
+ location.href="index.html";
+};
+el("startBtn").onclick = ()=>location.href="test.html";
+el("detailBtn").onclick = ()=>location.href="exam_detail.html";
 </script>
 
 </body>
