@@ -24,9 +24,6 @@ header{
  align-items:center;
  box-shadow:0 4px 15px rgba(0,0,0,.25);
 }
-header b{
- font-size:18px;
-}
 button{
  border:none;
  border-radius:10px;
@@ -68,6 +65,12 @@ h2{
  color:#1d3557;
  text-align:center;
 }
+
+/* ===== FIX CANVAS ===== */
+canvas{
+ width:100% !important;
+ height:320px !important;
+}
 </style>
 </head>
 
@@ -75,8 +78,8 @@ h2{
 
 <!-- ===== HEADER ===== -->
 <header>
- <b>📈 BIỂU ĐỒ THỐNG KẾT QUẢ KIỂM TRA</b>
- <button id="backBtn" onclick="back()">⬅ Quay lại trang học viên</button>
+ <b>📈 BIỂU ĐỒ THỐNG KÊ KẾT QUẢ KIỂM TRA</b>
+ <button id="backBtn" onclick="back()">⬅ Quay lại</button>
 </header>
 
 <!-- ===== CONTENT ===== -->
@@ -86,13 +89,11 @@ h2{
 
  <div class="grid">
 
-  <!-- BAR CHART -->
   <div class="box">
    <h3>📊 Số lượt kiểm tra</h3>
    <canvas id="barChart"></canvas>
   </div>
 
-  <!-- PIE CHART -->
   <div class="box">
    <h3>🥧 Tỷ lệ đạt / không đạt</h3>
    <canvas id="pieChart"></canvas>
@@ -132,14 +133,12 @@ function back(){
  window.location.href = "exam.html";
 }
 
-/* ===== LOAD DATA ===== */
+/* ===== LOAD & DRAW ===== */
 db.collection("exam_logs")
  .where("code","==",code)
  .get()
  .then(snapshot=>{
-  let total = 0;
-  let pass = 0;
-  let fail = 0;
+  let total=0, pass=0, fail=0;
 
   snapshot.forEach(doc=>{
    total++;
@@ -150,39 +149,40 @@ db.collection("exam_logs")
   drawCharts(total, pass, fail);
  });
 
-/* ===== DRAW CHARTS ===== */
 function drawCharts(total, pass, fail){
 
- /* BAR CHART */
- new Chart(document.getElementById("barChart"), {
-  type: "bar",
-  data: {
-   labels: ["Tổng lượt kiểm tra", "Đạt", "Không đạt"],
-   datasets: [{
-    data: [total, pass, fail],
-    backgroundColor: ["#457b9d", "#2a9d8f", "#e63946"],
-    borderRadius: 8
+ /* BAR */
+ new Chart(document.getElementById("barChart").getContext("2d"),{
+  type:"bar",
+  data:{
+   labels:["Tổng lượt","Đạt","Không đạt"],
+   datasets:[{
+    data:[total,pass,fail],
+    backgroundColor:["#457b9d","#2a9d8f","#e63946"],
+    borderRadius:10
    }]
   },
-  options: {
-   plugins: {
-    legend: { display: false }
-   },
-   scales: {
-    y: { beginAtZero: true }
-   }
+  options:{
+   responsive:true,
+   maintainAspectRatio:false,
+   plugins:{legend:{display:false}},
+   scales:{y:{beginAtZero:true}}
   }
  });
 
- /* PIE CHART */
- new Chart(document.getElementById("pieChart"), {
-  type: "pie",
-  data: {
-   labels: ["Đạt", "Không đạt"],
-   datasets: [{
-    data: [pass, fail],
-    backgroundColor: ["#2a9d8f", "#e63946"]
+ /* PIE */
+ new Chart(document.getElementById("pieChart").getContext("2d"),{
+  type:"pie",
+  data:{
+   labels:["Đạt","Không đạt"],
+   datasets:[{
+    data:[pass,fail],
+    backgroundColor:["#2a9d8f","#e63946"]
    }]
+  },
+  options:{
+   responsive:true,
+   maintainAspectRatio:false
   }
  });
 
