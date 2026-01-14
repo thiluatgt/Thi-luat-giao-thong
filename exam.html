@@ -8,10 +8,10 @@
 body{
  margin:0;
  font-family:Arial;
- background:#eef2f6;
+ background:linear-gradient(135deg,#e8f0ff,#f4f9ff);
 }
 #header{
- background:#1d3557;
+ background:linear-gradient(90deg,#1d3557,#264a8a);
  color:white;
  padding:18px 30px;
  display:flex;
@@ -22,11 +22,14 @@ body{
  background:#e63946;
  color:white;
  border:none;
- border-radius:8px;
- padding:10px 16px;
+ border-radius:10px;
+ padding:10px 18px;
  font-size:14px;
  cursor:pointer;
+ transition:.3s;
 }
+#logoutBtn:hover{opacity:.85}
+
 #container{
  max-width:1100px;
  margin:30px auto;
@@ -44,53 +47,77 @@ body{
 }
 .box{
  background:white;
- padding:20px;
- border-radius:12px;
- box-shadow:0 4px 15px rgba(0,0,0,.12);
+ padding:22px;
+ border-radius:16px;
+ box-shadow:0 8px 25px rgba(0,0,0,.12);
 }
 .box h3{
  margin-top:0;
  color:#1d3557;
 }
 .info p{
- margin:8px 0;
+ margin:10px 0;
 }
+
+/* ===== STATISTICS ===== */
 .statsRow{
  display:flex;
  gap:18px;
- margin-bottom:20px;
+ margin-bottom:22px;
 }
 .statBox{
  flex:1;
  text-align:center;
- background:#f4f6f8;
- padding:18px;
- border-radius:10px;
+ padding:20px;
+ border-radius:14px;
+ color:white;
+}
+.statBox:nth-child(1){
+ background:linear-gradient(135deg,#457b9d,#1d3557);
+}
+.statBox:nth-child(2){
+ background:linear-gradient(135deg,#2a9d8f,#1b7a6b);
+}
+.statBox:nth-child(3){
+ background:linear-gradient(135deg,#f4a261,#e76f51);
 }
 .statBox b{
- font-size:22px;
- color:#1d3557;
+ display:block;
+ font-size:26px;
+ margin-top:8px;
 }
+
+/* ===== ACTION BUTTONS ===== */
 .actions{
  display:flex;
- gap:16px;
+ gap:18px;
  justify-content:flex-end;
 }
 .actionBtn{
  border:none;
- border-radius:10px;
- padding:16px 22px;
- font-size:16px;
+ border-radius:14px;
+ padding:18px 26px;
+ font-size:17px;
  cursor:pointer;
- min-width:220px;
+ min-width:230px;
+ font-weight:bold;
+ transition:.3s;
 }
 #startBtn{
- background:#2a9d8f;
+ background:linear-gradient(135deg,#2a9d8f,#1b7a6b);
  color:white;
+ box-shadow:0 6px 18px rgba(42,157,143,.4);
+}
+#startBtn:hover{
+ transform:translateY(-2px);
 }
 #detailBtn{
- background:#457b9d;
+ background:linear-gradient(135deg,#457b9d,#1d3557);
  color:white;
+ box-shadow:0 6px 18px rgba(69,123,157,.4);
+}
+#detailBtn:hover{
+ transform:translateY(-2px);
 }
 </style>
 </head>
@@ -127,15 +154,15 @@ body{
 
    <div class="statsRow">
     <div class="statBox">
-     <div>Số lượt thi</div>
+     Số lượt thi
      <b id="totalExam">0</b>
     </div>
     <div class="statBox">
-     <div>Số lượt đạt</div>
+     Số lượt đạt
      <b id="passExam">0</b>
     </div>
     <div class="statBox">
-     <div>Tỷ lệ đạt</div>
+     Tỷ lệ đạt
      <b id="rateExam">0%</b>
     </div>
    </div>
@@ -159,7 +186,6 @@ body{
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-/* ===== FIREBASE INIT ===== */
 firebase.initializeApp({
  apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
  authDomain:"thi-luat-giao-thong.firebaseapp.com",
@@ -173,42 +199,34 @@ if(localStorage.getItem("userType")!=="student"){
  window.location.href="index.html";
 }
 
-/* ===== LOAD USER INFO ===== */
+/* ===== USER INFO ===== */
 const code=localStorage.getItem("studentCode");
 const name=localStorage.getItem("studentName");
 const unit=localStorage.getItem("unit")||"";
 
-document.getElementById("studentName").innerText=name;
-document.getElementById("infoCode").innerText=code;
-document.getElementById("infoName").innerText=name;
-document.getElementById("infoUnit").innerText=unit;
+studentName.innerText=name;
+infoCode.innerText=code;
+infoName.innerText=name;
+infoUnit.innerText=unit;
 
-/* ===== LOAD STATISTICS ===== */
+/* ===== STATISTICS ===== */
 db.collection("exam_logs")
  .where("code","==",code)
  .get()
- .then(snapshot=>{
-  let total=snapshot.size;
-  let pass=0;
-  snapshot.forEach(doc=>{
-   if(doc.data().pass===true) pass++;
-  });
-  document.getElementById("totalExam").innerText=total;
-  document.getElementById("passExam").innerText=pass;
-  document.getElementById("rateExam").innerText=
-    total ? Math.round(pass/total*100)+"%" : "0%";
+ .then(s=>{
+  let total=s.size,pass=0;
+  s.forEach(d=>{if(d.data().pass)pass++;});
+  totalExam.innerText=total;
+  passExam.innerText=pass;
+  rateExam.innerText=total?Math.round(pass/total*100)+"%":"0%";
  });
 
-/* ===== ACTIONS ===== */
 function startExam(){
  window.location.href="test.html";
 }
-
 function viewDetail(){
  alert("Trang thống kê chi tiết sẽ được mở ở bước tiếp theo");
 }
-
-/* ===== LOGOUT ===== */
 function logout(){
  localStorage.clear();
  window.location.href="index.html";
