@@ -6,78 +6,73 @@
 
 <style>
 body{
- margin:0;
- font-family:Arial;
- background:#eef2f6;
+ margin:0;font-family:Arial;background:#eef2f6;
 }
 #header{
- background:#1d3557;
- color:white;
- padding:15px 30px;
- display:flex;
- justify-content:space-between;
- align-items:center;
+ background:#1d3557;color:white;
+ padding:18px 30px;
+ display:flex;justify-content:space-between;align-items:center;
 }
 #logoutBtn{
- background:#e63946;
- color:white;
- border:none;
- padding:8px 16px;
- border-radius:6px;
- cursor:pointer;
- font-size:14px;
+ background:#e63946;color:white;
+ border:none;border-radius:8px;
+ padding:10px 16px;
+ font-size:14px;cursor:pointer;
 }
 #container{
- max-width:1200px;
+ max-width:1100px;
  margin:30px auto;
  padding:0 20px;
 }
-#title{
+#welcome{
  font-size:22px;
- font-weight:bold;
- margin-bottom:20px;
+ margin-bottom:25px;
+ color:#1d3557;
 }
-#main{
+#grid{
  display:grid;
- grid-template-columns:1.2fr 1.5fr 1fr;
+ grid-template-columns:1fr 2fr;
  gap:25px;
 }
 .box{
  background:white;
  padding:20px;
  border-radius:12px;
- box-shadow:0 5px 20px rgba(0,0,0,.12);
+ box-shadow:0 4px 15px rgba(0,0,0,.12);
 }
 .box h3{
  margin-top:0;
  color:#1d3557;
 }
-
-/* ===== BUTTON ===== */
+.info p{margin:8px 0;}
+.stats{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:20px;
+}
+.statBox{
+ flex:1;
+ text-align:center;
+ background:#f4f6f8;
+ padding:18px;
+ border-radius:10px;
+}
+.statBox b{
+ font-size:22px;
+ color:#1d3557;
+}
 #startBtn{
- width:100%;
- height:120px;
- background:#1d3557;
+ background:#2a9d8f;
  color:white;
  border:none;
  border-radius:12px;
- font-size:22px;
- font-weight:bold;
- cursor:pointer;
-}
-#startBtn:hover{
- background:#16324f;
-}
-
-/* ===== STATS ===== */
-.stat{
+ padding:18px 26px;
  font-size:18px;
- margin:12px 0;
+ cursor:pointer;
+ min-width:260px;
 }
-.stat span{
- font-weight:bold;
- color:#1d3557;
-}
+#startBtn:hover{opacity:.9;}
 </style>
 </head>
 
@@ -85,42 +80,53 @@ body{
 
 <!-- ===== HEADER ===== -->
 <div id="header">
- <div>📘 HỆ THỐNG KIỂM TRA LUẬT GIAO THÔNG ĐƯỜNG BỘ</div>
+ <div><b>HỆ THỐNG KIỂM TRA LUẬT GIAO THÔNG</b></div>
  <button id="logoutBtn" onclick="logout()">Đăng xuất</button>
 </div>
 
-<!-- ===== CONTENT ===== -->
+<!-- ===== MAIN ===== -->
 <div id="container">
 
- <div id="title">👋 Chào mừng, <span id="studentName"></span></div>
+ <div id="welcome">Xin chào, <b id="studentName"></b> 👋</div>
 
- <div id="main">
+ <div id="grid">
 
   <!-- ===== INFO ===== -->
-  <div class="box">
-   <h3>👤 Thông tin học viên</h3>
+  <div class="box info">
+   <h3>📘 Thông tin học viên</h3>
    <p><b>Mã học viên:</b> <span id="infoCode"></span></p>
    <p><b>Họ và tên:</b> <span id="infoName"></span></p>
    <p><b>Đơn vị:</b> <span id="infoUnit"></span></p>
    <p><b>Trạng thái:</b> <span id="infoStatus"></span></p>
   </div>
 
-  <!-- ===== STATS ===== -->
+  <!-- ===== STATS + ACTION ===== -->
   <div class="box">
    <h3>📊 Thống kê kết quả</h3>
-   <div class="stat">Số lượt kiểm tra: <span id="totalExam">0</span></div>
-   <div class="stat">Số lượt đạt: <span id="passExam">0</span></div>
-   <div class="stat">Tỷ lệ đạt: <span id="rateExam">0%</span></div>
-  </div>
 
-  <!-- ===== ACTION ===== -->
-  <div class="box" style="display:flex;align-items:center;">
-   <button id="startBtn" onclick="startExam()">
-    ▶ LÀM BÀI KIỂM TRA
-   </button>
+   <div class="stats">
+    <div class="statBox">
+     <div>Số lượt thi</div>
+     <b id="totalExam">0</b>
+    </div>
+    <div class="statBox">
+     <div>Số lượt đạt</div>
+     <b id="passExam">0</b>
+    </div>
+    <div class="statBox">
+     <div>Tỷ lệ đạt</div>
+     <b id="rateExam">0%</b>
+    </div>
+
+    <button id="startBtn" onclick="startExam()">
+     ▶ LÀM BÀI KIỂM TRA
+    </button>
+   </div>
+
   </div>
 
  </div>
+
 </div>
 
 <!-- ===== FIREBASE ===== -->
@@ -141,11 +147,11 @@ if(localStorage.getItem("userType")!=="student"){
  window.location.href="index.html";
 }
 
+/* ===== LOAD INFO ===== */
 const code=localStorage.getItem("studentCode");
 const name=localStorage.getItem("studentName");
-const unit=localStorage.getItem("unit");
+const unit=localStorage.getItem("unit")||"";
 
-/* ===== DISPLAY INFO ===== */
 studentName.innerText=name;
 infoCode.innerText=code;
 infoName.innerText=name;
@@ -157,20 +163,20 @@ db.collection("exam_logs")
  .where("code","==",code)
  .get()
  .then(snap=>{
-  let total=snap.size;
+  const total=snap.size;
   let pass=0;
-  snap.forEach(doc=>{
-   if(doc.data().pass) pass++;
-  });
+  snap.forEach(d=>{if(d.data().pass)pass++;});
   totalExam.innerText=total;
   passExam.innerText=pass;
   rateExam.innerText=total?Math.round(pass/total*100)+"%":"0%";
  });
 
-/* ===== ACTION ===== */
+/* ===== START ===== */
 function startExam(){
  window.location.href="test.html";
 }
+
+/* ===== LOGOUT ===== */
 function logout(){
  localStorage.clear();
  window.location.href="index.html";
