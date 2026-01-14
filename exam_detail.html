@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Thống kê chi tiết - Kiểm tra luật giao thông</title>
+
+<style>
+body{
+ margin:0;
+ font-family:Arial;
+ background:linear-gradient(135deg,#eef3ff,#f9fbff);
+}
+header{
+ background:linear-gradient(90deg,#1d3557,#264a8a);
+ color:white;
+ padding:18px 30px;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+}
+button{
+ border:none;
+ border-radius:10px;
+ padding:10px 18px;
+ font-size:14px;
+ cursor:pointer;
+}
+#backBtn{
+ background:#457b9d;
+ color:white;
+}
+#container{
+ max-width:1100px;
+ margin:30px auto;
+ padding:0 20px;
+}
+h2{
+ color:#1d3557;
+}
+.filter{
+ background:white;
+ padding:18px;
+ border-radius:14px;
+ box-shadow:0 6px 20px rgba(0,0,0,.12);
+ margin-bottom:25px;
+ display:flex;
+ gap:15px;
+ align-items:center;
+}
+.filter input{
+ padding:8px 10px;
+ border-radius:8px;
+ border:1px solid #ccc;
+}
+.filter button{
+ background:#2a9d8f;
+ color:white;
+}
+table{
+ width:100%;
+ border-collapse:collapse;
+ background:white;
+ border-radius:16px;
+ overflow:hidden;
+ box-shadow:0 8px 25px rgba(0,0,0,.12);
+}
+th,td{
+ padding:14px;
+ text-align:center;
+ border-bottom:1px solid #eee;
+}
+th{
+ background:#f1f4fb;
+ color:#1d3557;
+}
+.pass{
+ color:#2a9d8f;
+ font-weight:bold;
+}
+.fail{
+ color:#e63946;
+ font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+ <b>📊 THỐNG KÊ CHI TIẾT BÀI KIỂM TRA</b>
+ <button id="backBtn" onclick="back()">⬅ Quay lại</button>
+</header>
+
+<div id="container">
+
+ <h2 id="studentTitle"></h2>
+
+ <div class="filter">
+  <b>Lọc theo ngày:</b>
+  <input type="date" id="filterDate">
+  <button onclick="loadLogs()">Lọc</button>
+  <button onclick="resetFilter()" style="background:#e76f51;">Xem tất cả</button>
+ </div>
+
+ <table>
+  <thead>
+   <tr>
+    <th>#</th>
+    <th>Thời gian</th>
+    <th>Số câu đúng</th>
+    <th>Kết quả</th>
+   </tr>
+  </thead>
+  <tbody id="logTable"></tbody>
+ </table>
+
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+firebase.initializeApp({
+ apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+ authDomain:"thi-luat-giao-thong.firebaseapp.com",
+ projectId:"thi-luat-giao-thong"
+});
+const db=firebase.firestore();
+
+/* ===== LOGIN CHECK ===== */
+if(localStorage.getItem("userType")!=="student"){
+ alert("Bạn chưa đăng nhập");
+ window.location.href="index.html";
+}
+
+const code=localStorage.getItem("studentCode");
+const name=localStorage.getItem("studentName");
+studentTitle.innerText="Học viên: "+name+" ("+code+")";
+
+function back(){
+ window.location.href="exam.html";
+}
+
+/* ===== LOAD LOGS ===== */
+function loadLogs(){
+ logTable.innerHTML="";
+ let query=db.collection("exam_logs").where("code","==",code);
+
+ const d=filterDate.value;
+ if(d){
+  query=query.where("date","==",d);
+ }
+
+ query.orderBy("timestamp","desc").get().then(s=>{
+  if(s.empty){
+   logTable.innerHTML="<tr><td colspan='4'>Không có dữ liệu</td></tr>";
+   return;
+  }
+  let i=1;
+  s.forEach(doc=>{
+   const x=doc.data();
+   const time=x.timestamp
+    ? new Date(x.timestamp.seconds*1000).toLocaleString("vi-VN")
+    : "";
+   logTable.innerHTML+=`
+    <tr>
+     <td>${i++}</td>
+     <td>${time}</td>
+     <td>${x.score}/30</td>
+     <td class="${x.pass?'pass':'fail'}">
+      ${x.pass?'ĐẠT':'KHÔNG ĐẠT'}
+     </td>
+    </tr>`;
+  });
+ });
+}
+
+function resetFilter(){
+ filterDate.value="";
+ loadLogs();
+}
+
+loadLogs();
+</script>
+
+</body>
+</html>
