@@ -4,14 +4,16 @@
 <meta charset="UTF-8">
 <title>HỆ THỐNG KIỂM TRA LUẬT GIAO THÔNG ĐƯỜNG BỘ</title>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
 body{
  margin:0;
  font-family:Arial;
- background:linear-gradient(135deg,#e8f0ff,#f4f9ff);
+ background:#eef2f6;
 }
-#header{
- background:linear-gradient(90deg,#1d3557,#264a8a);
+header{
+ background:#1d3557;
  color:white;
  padding:18px 30px;
  display:flex;
@@ -22,16 +24,12 @@ body{
  background:#e63946;
  color:white;
  border:none;
- border-radius:10px;
- padding:10px 18px;
- font-size:14px;
+ border-radius:8px;
+ padding:10px 16px;
  cursor:pointer;
- transition:.3s;
 }
-#logoutBtn:hover{opacity:.85}
-
 #container{
- max-width:1100px;
+ max-width:1200px;
  margin:30px auto;
  padding:0 20px;
 }
@@ -40,141 +38,156 @@ body{
  margin-bottom:25px;
  color:#1d3557;
 }
-#grid{
+.grid{
  display:grid;
- grid-template-columns:1fr 2fr;
+ grid-template-columns:1fr 2.2fr;
  gap:25px;
 }
 .box{
  background:white;
- padding:22px;
- border-radius:16px;
- box-shadow:0 8px 25px rgba(0,0,0,.12);
+ padding:20px;
+ border-radius:14px;
+ box-shadow:0 4px 15px rgba(0,0,0,.12);
 }
 .box h3{
  margin-top:0;
  color:#1d3557;
 }
-.info p{
- margin:10px 0;
-}
+.info p{margin:8px 0;}
 
-/* ===== STATISTICS ===== */
-.statsRow{
+/* ===== STATS ===== */
+.statRow{
  display:flex;
- gap:18px;
- margin-bottom:22px;
+ gap:15px;
+ margin-bottom:15px;
 }
 .statBox{
  flex:1;
  text-align:center;
- padding:20px;
- border-radius:14px;
+ padding:15px;
+ border-radius:10px;
  color:white;
 }
-.statBox:nth-child(1){
- background:linear-gradient(135deg,#457b9d,#1d3557);
+.statBox b{font-size:22px;}
+.bg1{background:#457b9d;}
+.bg2{background:#2a9d8f;}
+.bg3{background:#e63946;}
+
+.tableWrap{
+ margin-top:15px;
 }
-.statBox:nth-child(2){
- background:linear-gradient(135deg,#2a9d8f,#1b7a6b);
+table{
+ width:100%;
+ border-collapse:collapse;
+ font-size:14px;
 }
-.statBox:nth-child(3){
- background:linear-gradient(135deg,#f4a261,#e76f51);
+th,td{
+ padding:10px;
+ text-align:center;
+ border-bottom:1px solid #eee;
 }
-.statBox b{
- display:block;
- font-size:26px;
- margin-top:8px;
+th{
+ background:#f1f4fb;
+ color:#1d3557;
+}
+.pass{color:#2a9d8f;font-weight:bold;}
+.fail{color:#e63946;font-weight:bold;}
+
+canvas{
+ width:100% !important;
+ height:240px !important;
+ margin-top:15px;
 }
 
-/* ===== ACTION BUTTONS ===== */
+/* ===== ACTIONS ===== */
 .actions{
  display:flex;
- gap:18px;
  justify-content:flex-end;
+ gap:14px;
+ margin-top:15px;
 }
 .actionBtn{
  border:none;
- border-radius:14px;
- padding:18px 26px;
- font-size:17px;
+ border-radius:10px;
+ padding:14px 20px;
+ font-size:15px;
  cursor:pointer;
- min-width:230px;
- font-weight:bold;
- transition:.3s;
-}
-#startBtn{
- background:linear-gradient(135deg,#2a9d8f,#1b7a6b);
+ min-width:200px;
  color:white;
- box-shadow:0 6px 18px rgba(42,157,143,.4);
 }
-#startBtn:hover{
- transform:translateY(-2px);
-}
-#detailBtn{
- background:linear-gradient(135deg,#457b9d,#1d3557);
- color:white;
- box-shadow:0 6px 18px rgba(69,123,157,.4);
-}
-#detailBtn:hover{
- transform:translateY(-2px);
-}
+#detailBtn{background:#457b9d;}
+#startBtn{background:#2a9d8f;}
 </style>
 </head>
 
 <body>
 
-<!-- ===== HEADER ===== -->
-<div id="header">
- <div><b>HỆ THỐNG KIỂM TRA LUẬT GIAO THÔNG</b></div>
+<header>
+ <b>HỆ THỐNG KIỂM TRA LUẬT GIAO THÔNG</b>
  <button id="logoutBtn" onclick="logout()">Đăng xuất</button>
-</div>
+</header>
 
-<!-- ===== MAIN ===== -->
 <div id="container">
 
  <div id="welcome">
   Xin chào, <b id="studentName"></b> 👋
  </div>
 
- <div id="grid">
+ <div class="grid">
 
-  <!-- ===== THÔNG TIN HỌC VIÊN ===== -->
+  <!-- ===== LEFT: INFO ===== -->
   <div class="box info">
    <h3>📘 Thông tin học viên</h3>
    <p><b>Mã học viên:</b> <span id="infoCode"></span></p>
    <p><b>Họ và tên:</b> <span id="infoName"></span></p>
    <p><b>Đơn vị:</b> <span id="infoUnit"></span></p>
-   <p><b>Trạng thái:</b> <span id="infoStatus">Hoạt động</span></p>
+   <p><b>Trạng thái:</b> Hoạt động</p>
   </div>
 
-  <!-- ===== THỐNG KÊ + HÀNH ĐỘNG ===== -->
+  <!-- ===== RIGHT: STATS ===== -->
   <div class="box">
    <h3>📊 Thống kê kết quả</h3>
 
-   <div class="statsRow">
-    <div class="statBox">
-     Số lượt thi
-     <b id="totalExam">0</b>
+   <!-- SUMMARY -->
+   <div class="statRow">
+    <div class="statBox bg1">
+     Tổng lượt<br><b id="totalExam">0</b>
     </div>
-    <div class="statBox">
-     Số lượt đạt
-     <b id="passExam">0</b>
+    <div class="statBox bg2">
+     Đạt<br><b id="passExam">0</b>
     </div>
-    <div class="statBox">
-     Tỷ lệ đạt
-     <b id="rateExam">0%</b>
+    <div class="statBox bg3">
+     Không đạt<br><b id="failExam">0</b>
     </div>
    </div>
 
+   <!-- CHART -->
+   <canvas id="chart"></canvas>
+
+   <!-- TABLE -->
+   <div class="tableWrap">
+    <table>
+     <thead>
+      <tr>
+       <th>#</th>
+       <th>Thời gian</th>
+       <th>Kết quả</th>
+      </tr>
+     </thead>
+     <tbody id="logTable"></tbody>
+    </table>
+   </div>
+
+   <!-- ACTIONS -->
    <div class="actions">
     <button id="detailBtn" class="actionBtn" onclick="viewDetail()">
-     📄 THỐNG KÊ CHI TIẾT
+     📄 Thống kê chi tiết
     </button>
     <button id="startBtn" class="actionBtn" onclick="startExam()">
-     ▶ LÀM BÀI KIỂM TRA
+     ▶ Làm bài kiểm tra
     </button>
    </div>
+
   </div>
 
  </div>
@@ -199,7 +212,6 @@ if(localStorage.getItem("userType")!=="student"){
  window.location.href="index.html";
 }
 
-/* ===== USER INFO ===== */
 const code=localStorage.getItem("studentCode");
 const name=localStorage.getItem("studentName");
 const unit=localStorage.getItem("unit")||"";
@@ -209,18 +221,60 @@ infoCode.innerText=code;
 infoName.innerText=name;
 infoUnit.innerText=unit;
 
-/* ===== STATISTICS ===== */
+/* ===== LOAD STATS ===== */
 db.collection("exam_logs")
  .where("code","==",code)
+ .orderBy("timestamp","desc")
  .get()
- .then(s=>{
-  let total=s.size,pass=0;
-  s.forEach(d=>{if(d.data().pass)pass++;});
+ .then(snap=>{
+  let total=0, pass=0, fail=0;
+  logTable.innerHTML="";
+  let i=1;
+
+  snap.forEach(doc=>{
+   const d=doc.data();
+   total++;
+   if(d.pass) pass++; else fail++;
+
+   const time=d.timestamp
+    ? new Date(d.timestamp.seconds*1000).toLocaleString("vi-VN")
+    : "";
+
+   logTable.innerHTML+=`
+    <tr>
+     <td>${i++}</td>
+     <td>${time}</td>
+     <td class="${d.pass?'pass':'fail'}">
+      ${d.pass?'ĐẠT':'KHÔNG ĐẠT'}
+     </td>
+    </tr>`;
+  });
+
   totalExam.innerText=total;
   passExam.innerText=pass;
-  rateExam.innerText=total?Math.round(pass/total*100)+"%":"0%";
+  failExam.innerText=fail;
+
+  drawChart(pass,fail);
  });
 
+function drawChart(pass,fail){
+ new Chart(chart,{
+  type:"pie",
+  data:{
+   labels:["Đạt","Không đạt"],
+   datasets:[{
+    data:[pass,fail],
+    backgroundColor:["#2a9d8f","#e63946"]
+   }]
+  },
+  options:{
+   responsive:true,
+   maintainAspectRatio:false
+  }
+ });
+}
+
+/* ===== ACTIONS ===== */
 function startExam(){
  window.location.href="test.html";
 }
