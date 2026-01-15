@@ -129,16 +129,49 @@ const rawInput = localStorage.getItem("studentCode") || "";
 const inputNumber = rawInput.replace(/\D/g,""); // chỉ lấy số
 
 /* ===== LOAD STUDENT (SAFE MODE) ===== */
-db.collection("students").get().then(snap=>{
- let found=null;
+<script>
+/* ===== LẤY GIÁ TRỊ ĐĂNG NHẬP ===== */
+const rawInput = (localStorage.getItem("studentCode") || "").trim();
+const inputNumber = rawInput.replace(/\D/g, ""); // chỉ lấy số
 
- snap.forEach(doc=>{
-  const s=doc.data();
-  const dbNumber=String(s.code).replace(/\D/g,"");
-  if(dbNumber===inputNumber){
-   found=s;
+if(!inputNumber){
+ alert("Dữ liệu đăng nhập không hợp lệ");
+ location.href = "index.html";
+}
+
+/* ===== TÌM HỌC VIÊN (CHỐNG LỖI) ===== */
+db.collection("students").get().then(snapshot => {
+ let student = null;
+
+ snapshot.forEach(doc => {
+  const s = doc.data();
+
+  if(!s.code) return;
+
+  const dbNumber = String(s.code).replace(/\D/g, "");
+
+  if(dbNumber === inputNumber){
+   student = s;
   }
  });
+
+ if(!student){
+  alert("❌ Không tìm thấy thông tin học viên");
+  location.href = "index.html";
+  return;
+ }
+
+ /* ===== HIỂN THỊ THÔNG TIN ===== */
+ studentName.innerText = student.name;
+ infoCode.innerText = "HV" + String(student.code).replace(/\D/g,"");
+ infoName.innerText = student.name;
+ infoUnit.innerText = student.unit || "";
+ infoStatus.innerText = student.status || "Hoạt động";
+
+ /* ===== LOAD LOG THI ===== */
+ loadExamLogs(String(student.code).replace(/\D/g,""));
+});
+</script>
 
  if(!found){
   alert("❌ Không tìm thấy học viên trong hệ thống");
