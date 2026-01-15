@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>HỆ THỐNG KIỂM TRA LUẬT GIAO THÔNG ĐƯỜNG BỘ</title>
+<title>HỆ THỐNG KIỂM TRA LUẬT GIAO THÔNG</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -59,13 +59,9 @@ canvas{width:100%!important;height:240px!important;margin-top:15px;}
 </header>
 
 <div id="container">
-
- <div id="welcome">
-  Xin chào, <b id="studentName">...</b> 👋
- </div>
+ <div id="welcome">Xin chào, <b id="studentName">...</b> 👋</div>
 
  <div class="grid">
-
   <div class="box info">
    <h3>📘 Thông tin học viên</h3>
    <p><b>Mã học viên:</b> <span id="infoCode"></span></p>
@@ -101,9 +97,7 @@ canvas{width:100%!important;height:240px!important;margin-top:15px;}
     <button id="detailBtn" class="actionBtn">📄 Thống kê chi tiết</button>
     <button id="startBtn" class="actionBtn">▶ Làm bài kiểm tra</button>
    </div>
-
   </div>
-
  </div>
 </div>
 
@@ -111,7 +105,6 @@ canvas{width:100%!important;height:240px!important;margin-top:15px;}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-/* ===== FIREBASE ===== */
 firebase.initializeApp({
  apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
  authDomain:"thi-luat-giao-thong.firebaseapp.com",
@@ -124,109 +117,60 @@ if(localStorage.getItem("userType")!=="student"){
  location.href="index.html";
 }
 
-/* ===== GET LOGIN VALUE ===== */
-const rawInput = localStorage.getItem("studentCode") || "";
-const inputNumber = rawInput.replace(/\D/g,""); // chỉ lấy số
+/* ===== GET CODE ===== */
+const raw=(localStorage.getItem("studentCode")||"").trim();
+const code=raw.replace(/\D/g,"");
 
-/* ===== LOAD STUDENT (SAFE MODE) ===== */
-<script>
-/* ===== LẤY GIÁ TRỊ ĐĂNG NHẬP ===== */
-const rawInput = (localStorage.getItem("studentCode") || "").trim();
-const inputNumber = rawInput.replace(/\D/g, ""); // chỉ lấy số
-
-if(!inputNumber){
+if(!code){
  alert("Dữ liệu đăng nhập không hợp lệ");
- location.href = "index.html";
+ location.href="index.html";
 }
 
-/* ===== TÌM HỌC VIÊN (CHỐNG LỖI) ===== */
-db.collection("students").get().then(snapshot => {
- let student = null;
-
- snapshot.forEach(doc => {
-  const s = doc.data();
-
-  if(!s.code) return;
-
-  const dbNumber = String(s.code).replace(/\D/g, "");
-
-  if(dbNumber === inputNumber){
-   student = s;
-  }
- });
-
- if(!student){
-  alert("❌ Không tìm thấy thông tin học viên");
-  location.href = "index.html";
-  return;
- }
-
- /* ===== HIỂN THỊ THÔNG TIN ===== */
- studentName.innerText = student.name;
- infoCode.innerText = "HV" + String(student.code).replace(/\D/g,"");
- infoName.innerText = student.name;
- infoUnit.innerText = student.unit || "";
- infoStatus.innerText = student.status || "Hoạt động";
-
- /* ===== LOAD LOG THI ===== */
- loadExamLogs(String(student.code).replace(/\D/g,""));
-});
-</script>
-
- if(!found){
-  alert("❌ Không tìm thấy học viên trong hệ thống");
+/* ===== LOAD STUDENT ===== */
+db.collection("students").where("code","==",code).limit(1).get().then(snap=>{
+ if(snap.empty){
+  alert("❌ Không tìm thấy học viên");
   location.href="index.html";
   return;
  }
+ const s=snap.docs[0].data();
 
- /* ===== SHOW INFO ===== */
- studentName.innerText=found.name;
- infoCode.innerText="HV"+String(found.code).replace(/\D/g,"");
- infoName.innerText=found.name;
- infoUnit.innerText=found.unit||"";
- infoStatus.innerText=found.status||"Hoạt động";
+ studentName.innerText=s.name;
+ infoCode.innerText="HV"+s.code;
+ infoName.innerText=s.name;
+ infoUnit.innerText=s.unit||"";
+ infoStatus.innerText=s.status||"Hoạt động";
 
- loadExamLogs(String(found.code).replace(/\D/g,""));
+ loadExamLogs(s.code);
 });
 
-/* ===== LOAD EXAM LOGS ===== */
+/* ===== LOAD LOGS ===== */
 function loadExamLogs(code){
- db.collection("exam_logs")
- .where("code","==",code)
- .get()
- .then(snap=>{
+ db.collection("exam_logs").where("code","==",code).get().then(snap=>{
   let logs=[];
-  snap.forEach(doc=>logs.push(doc.data()));
-
-  if(logs.length===0){
-   empty.innerText="📭 Chưa có dữ liệu thi";
+  snap.forEach(d=>logs.push(d.data()));
+  if(!logs.length){
+   empty.innerText="📭 Chưa có dữ liệu";
    return;
   }
 
   logs.sort((a,b)=>(b.timestamp?.seconds||0)-(a.timestamp?.seconds||0));
 
-  let total=0,pass=0,fail=0;
+  let pass=0,fail=0;
   logTable.innerHTML="";
 
   logs.forEach((d,i)=>{
-   total++;
    d.pass?pass++:fail++;
-
-   const time=d.timestamp
-    ? new Date(d.timestamp.seconds*1000).toLocaleString("vi-VN")
-    : "-";
-
+   const time=d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString("vi-VN"):"-";
    logTable.innerHTML+=`
     <tr>
      <td>${i+1}</td>
      <td>${time}</td>
-     <td class="${d.pass?'pass':'fail'}">
-      ${d.pass?'ĐẠT':'KHÔNG ĐẠT'}
-     </td>
+     <td class="${d.pass?'pass':'fail'}">${d.pass?'ĐẠT':'KHÔNG ĐẠT'}</td>
     </tr>`;
   });
 
-  totalExam.innerText=total;
+  totalExam.innerText=logs.length;
   passExam.innerText=pass;
   failExam.innerText=fail;
   drawChart(pass,fail);
@@ -235,26 +179,20 @@ function loadExamLogs(code){
 
 /* ===== CHART ===== */
 let chart=null;
-function drawChart(pass,fail){
+function drawChart(p,f){
  if(chart) chart.destroy();
- chart=new Chart(chart,{
+ chart=new Chart(document.getElementById("chart"),{
   type:"pie",
   data:{
    labels:["Đạt","Không đạt"],
-   datasets:[{
-    data:[pass,fail],
-    backgroundColor:["#2a9d8f","#e63946"]
-   }]
+   datasets:[{data:[p,f],backgroundColor:["#2a9d8f","#e63946"]}]
   },
   options:{responsive:true,maintainAspectRatio:false}
  });
 }
 
-/* ===== ACTIONS ===== */
-logoutBtn.onclick=()=>{
- localStorage.clear();
- location.href="index.html";
-};
+/* ===== BUTTONS ===== */
+logoutBtn.onclick=()=>{localStorage.clear();location.href="index.html";}
 startBtn.onclick=()=>location.href="test.html";
 detailBtn.onclick=()=>location.href="exam_detail.html";
 </script>
