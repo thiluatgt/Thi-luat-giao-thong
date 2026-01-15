@@ -9,30 +9,18 @@
 
 <style>
 body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#eef2f6;}
-header{
- background:#1d3557;color:white;
- padding:18px 30px;
- display:flex;justify-content:space-between;align-items:center;
-}
-#logoutBtn{
- background:#e63946;color:white;border:none;
- border-radius:8px;padding:10px 16px;cursor:pointer;
-}
+header{background:#1d3557;color:white;padding:18px 30px;display:flex;justify-content:space-between;align-items:center;}
+#logoutBtn{background:#e63946;color:white;border:none;border-radius:8px;padding:10px 16px;cursor:pointer;}
 #logoutBtn:hover{background:#d62839;}
 #container{max-width:1200px;margin:30px auto;padding:0 20px;}
 #welcome{font-size:22px;margin-bottom:25px;color:#1d3557;}
 .grid{display:grid;grid-template-columns:1fr 2.2fr;gap:25px;}
 @media(max-width:768px){.grid{grid-template-columns:1fr;}}
-.box{
- background:white;padding:20px;border-radius:14px;
- box-shadow:0 4px 15px rgba(0,0,0,.12);
-}
+.box{background:white;padding:20px;border-radius:14px;box-shadow:0 4px 15px rgba(0,0,0,.12);}
 .box h3{margin-top:0;color:#1d3557;}
 .info p{margin:8px 0;}
 .statRow{display:flex;gap:15px;margin-bottom:15px;}
-.statBox{
- flex:1;text-align:center;padding:15px;border-radius:10px;color:white;
-}
+.statBox{flex:1;text-align:center;padding:15px;border-radius:10px;color:white;}
 .statBox b{font-size:22px;display:block;margin-top:5px;}
 .bg1{background:#457b9d;}
 .bg2{background:#2a9d8f;}
@@ -45,16 +33,10 @@ th{background:#f1f4fb;color:#1d3557;font-weight:600;}
 .chartContainer{position:relative;height:240px;margin-top:15px;}
 canvas{max-height:240px;}
 .actions{display:flex;justify-content:flex-end;gap:14px;margin-top:15px;flex-wrap:wrap;}
-.actionBtn{
- border:none;border-radius:10px;padding:14px 20px;
- font-size:15px;cursor:pointer;min-width:200px;color:white;
- transition:opacity 0.2s;
-}
-.actionBtn:hover{opacity:0.9;}
+.actionBtn{border:none;border-radius:10px;padding:14px 20px;font-size:15px;cursor:pointer;min-width:200px;color:white;}
 #detailBtn{background:#457b9d;}
 #startBtn{background:#2a9d8f;}
 #empty{color:#888;text-align:center;margin-top:15px;font-style:italic;}
-.loading{text-align:center;padding:20px;color:#666;}
 </style>
 </head>
 
@@ -114,7 +96,6 @@ canvas{max-height:240px;}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-// Khởi tạo Firebase
 firebase.initializeApp({
  apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
  authDomain:"thi-luat-giao-thong.firebaseapp.com",
@@ -122,173 +103,98 @@ firebase.initializeApp({
 });
 const db = firebase.firestore();
 
-/* ===== KIỂM TRA ĐĂNG NHẬP ===== */
+/* ===== LOGIN CHECK ===== */
 if(localStorage.getItem("userType") !== "student"){
- location.href = "index.html";
+ location.href="index.html";
 }
 
-/* ===== LẤY MÃ HỌC VIÊN ===== */
-const raw = (localStorage.getItem("studentCode") || "").trim();
-const inputNumber = raw.replace(/\D/g, "");
-
+/* ===== GET STUDENT CODE ===== */
+const raw = (localStorage.getItem("studentCode")||"").trim();
+const inputNumber = raw.replace(/\D/g,"");
 if(!inputNumber){
  alert("Dữ liệu đăng nhập không hợp lệ");
- location.href = "index.html";
+ location.href="index.html";
 }
+const studentCode = Number(inputNumber);
 
-/* ===== TẢI THÔNG TIN HỌC VIÊN ===== */
-db.collection("students").get()
- .then(snapshot => {
-  let student = null;
-
-  snapshot.forEach(doc => {
-   const s = doc.data();
-   if(!s.code) return;
-
-   const dbNumber = String(s.code).replace(/\D/g, "");
-   if(dbNumber === inputNumber){
-    student = s;
-   }
-  });
-
-  if(!student){
+/* ===== LOAD STUDENT (OPTIMIZED) ===== */
+db.collection("students")
+ .where("code","==",studentCode)
+ .limit(1)
+ .get()
+ .then(snap=>{
+  if(snap.empty){
    alert("❌ Không tìm thấy học viên");
-   location.href = "index.html";
+   location.href="index.html";
    return;
   }
 
-  // Hiển thị thông tin
-  studentName.textContent = student.name || "Không xác định";
-  infoCode.textContent = "HV" + String(student.code).replace(/\D/g, "");
-  infoName.textContent = student.name || "Không xác định";
-  infoUnit.textContent = student.unit || "Chưa xác định";
+  const student = snap.docs[0].data();
+
+  studentName.textContent = student.name || "";
+  infoCode.textContent = "HV" + student.code;
+  infoName.textContent = student.name || "";
+  infoUnit.textContent = student.unit || "";
   infoStatus.textContent = student.status || "Hoạt động";
 
-  // Tải lịch sử thi
-  loadExamLogs(String(student.code).replace(/\D/g, ""));
- })
- .catch(error => {
-  console.error("Lỗi khi tải thông tin học viên:", error);
-  alert("Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại.");
+  loadExamLogs(String(student.code));
  });
 
-/* ===== TẢI LỊCH SỬ THI ===== */
+/* ===== LOAD EXAM LOGS ===== */
 function loadExamLogs(code){
- db.collection("exam_logs")
-  .where("code", "==", code)
-  .get()
-  .then(snap => {
-   let logs = [];
-   snap.forEach(d => logs.push(d.data()));
+ db.collection("exam_logs").where("code","==",code).get().then(snap=>{
+  let logs=[];
+  snap.forEach(d=>logs.push(d.data()));
 
-   if(!logs.length){
-    empty.textContent = "📭 Chưa có dữ liệu bài thi";
-    document.getElementById('resultTable').style.display = 'none';
-    return;
-   }
-
-   // Sắp xếp theo thời gian mới nhất
-   logs.sort((a, b) => {
-    const timeA = a.timestamp?.seconds || 0;
-    const timeB = b.timestamp?.seconds || 0;
-    return timeB - timeA;
-   });
-
-   let pass = 0, fail = 0;
-   logTable.innerHTML = "";
-
-   logs.forEach((d, i) => {
-    if(d.pass) {
-     pass++;
-    } else {
-     fail++;
-    }
-    
-    const time = d.timestamp 
-     ? new Date(d.timestamp.seconds * 1000).toLocaleString("vi-VN")
-     : "-";
-    
-    logTable.innerHTML += `
-     <tr>
-      <td>${i + 1}</td>
-      <td>${time}</td>
-      <td class="${d.pass ? 'pass' : 'fail'}">
-       ${d.pass ? 'ĐẠT' : 'KHÔNG ĐẠT'}
-      </td>
-     </tr>`;
-   });
-
-   // Cập nhật thống kê
-   totalExam.textContent = logs.length;
-   passExam.textContent = pass;
-   failExam.textContent = fail;
-   
-   // Hiển thị bảng
-   document.getElementById('resultTable').style.display = 'table';
-   empty.textContent = "";
-   
-   // Vẽ biểu đồ
-   drawChart(pass, fail);
-  })
-  .catch(error => {
-   console.error("Lỗi khi tải lịch sử thi:", error);
-   empty.textContent = "❌ Không thể tải dữ liệu";
-  });
-}
-
-/* ===== VẼ BIỂU ĐỒ ===== */
-let chart = null;
-function drawChart(p, f){
- const ctx = document.getElementById("chart");
- 
- if(chart){
-  chart.destroy();
- }
- 
- chart = new Chart(ctx, {
-  type: "pie",
-  data: {
-   labels: ["Đạt", "Không đạt"],
-   datasets: [{
-    data: [p, f],
-    backgroundColor: ["#2a9d8f", "#e63946"],
-    borderWidth: 2,
-    borderColor: "#fff"
-   }]
-  },
-  options: {
-   responsive: true,
-   maintainAspectRatio: true,
-   plugins: {
-    legend: {
-     position: 'bottom',
-     labels: {
-      padding: 15,
-      font: {
-       size: 13
-      }
-     }
-    }
-   }
+  if(!logs.length){
+   empty.textContent="📭 Chưa có dữ liệu";
+   return;
   }
+
+  logs.sort((a,b)=>(b.timestamp?.seconds||0)-(a.timestamp?.seconds||0));
+
+  let pass=0, fail=0;
+  logTable.innerHTML="";
+
+  logs.forEach((d,i)=>{
+   d.pass?pass++:fail++;
+   const time=d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString("vi-VN"):"-";
+   logTable.innerHTML+=`
+    <tr>
+     <td>${i+1}</td>
+     <td>${time}</td>
+     <td class="${d.pass?'pass':'fail'}">${d.pass?'ĐẠT':'KHÔNG ĐẠT'}</td>
+    </tr>`;
+  });
+
+  totalExam.textContent=logs.length;
+  passExam.textContent=pass;
+  failExam.textContent=fail;
+  resultTable.style.display="table";
+  empty.textContent="";
+
+  drawChart(pass,fail);
  });
 }
 
-/* ===== XỬ LÝ CÁC NÚT ===== */
-logoutBtn.onclick = () => {
- if(confirm("Bạn có chắc muốn đăng xuất?")){
-  localStorage.clear();
-  location.href = "index.html";
- }
-};
+/* ===== CHART ===== */
+let chart=null;
+function drawChart(p,f){
+ if(chart) chart.destroy();
+ chart=new Chart(document.getElementById("chart"),{
+  type:"pie",
+  data:{
+   labels:["Đạt","Không đạt"],
+   datasets:[{data:[p,f],backgroundColor:["#2a9d8f","#e63946"]}]
+  },
+  options:{responsive:true,maintainAspectRatio:true}
+ });
+}
 
-startBtn.onclick = () => {
- location.href = "test.html";
-};
-
-detailBtn.onclick = () => {
- location.href = "exam_detail.html";
-};
+/* ===== BUTTONS ===== */
+logoutBtn.onclick=()=>{localStorage.clear();location.href="index.html";}
+startBtn.onclick=()=>location.href="test.html";
+detailBtn.onclick=()=>location.href="exam_detail.html";
 </script>
 
 </body>
