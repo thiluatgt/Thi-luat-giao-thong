@@ -117,31 +117,40 @@ if(localStorage.getItem("userType")!=="student"){
  location.href="index.html";
 }
 
-/* ===== GET CODE ===== */
-const raw=(localStorage.getItem("studentCode")||"").trim();
-const code=raw.replace(/\D/g,"");
+/* ===== LẤY MÃ NGƯỜI DÙNG ===== */
+const raw = (localStorage.getItem("studentCode")||"").trim();
+const inputNumber = raw.replace(/\D/g,"");
 
-if(!code){
+if(!inputNumber){
  alert("Dữ liệu đăng nhập không hợp lệ");
  location.href="index.html";
 }
 
-/* ===== LOAD STUDENT ===== */
-db.collection("students").where("code","==",code).limit(1).get().then(snap=>{
- if(snap.empty){
+/* ===== LOAD STUDENT (SỬA LỖI CHÍNH) ===== */
+db.collection("students").get().then(snapshot=>{
+ let student=null;
+
+ snapshot.forEach(doc=>{
+  const s=doc.data();
+  if(!s.code) return;
+
+  const dbNumber=String(s.code).replace(/\D/g,"");
+  if(dbNumber===inputNumber) student=s;
+ });
+
+ if(!student){
   alert("❌ Không tìm thấy học viên");
   location.href="index.html";
   return;
  }
- const s=snap.docs[0].data();
 
- studentName.innerText=s.name;
- infoCode.innerText="HV"+s.code;
- infoName.innerText=s.name;
- infoUnit.innerText=s.unit||"";
- infoStatus.innerText=s.status||"Hoạt động";
+ studentName.innerText=student.name;
+ infoCode.innerText="HV"+String(student.code).replace(/\D/g,"");
+ infoName.innerText=student.name;
+ infoUnit.innerText=student.unit||"";
+ infoStatus.innerText=student.status||"Hoạt động";
 
- loadExamLogs(s.code);
+ loadExamLogs(String(student.code).replace(/\D/g,""));
 });
 
 /* ===== LOAD LOGS ===== */
@@ -149,6 +158,7 @@ function loadExamLogs(code){
  db.collection("exam_logs").where("code","==",code).get().then(snap=>{
   let logs=[];
   snap.forEach(d=>logs.push(d.data()));
+
   if(!logs.length){
    empty.innerText="📭 Chưa có dữ liệu";
    return;
