@@ -7,112 +7,47 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body{
- margin:0;
- font-family:Arial,Helvetica,sans-serif;
- background:#eef2f6;
-}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#eef2f6;}
 header{
- background:#1d3557;
- color:white;
+ background:#1d3557;color:white;
  padding:18px 30px;
- display:flex;
- justify-content:space-between;
- align-items:center;
+ display:flex;justify-content:space-between;align-items:center;
 }
 #logoutBtn{
- background:#e63946;
- color:white;
- border:none;
- border-radius:8px;
- padding:10px 16px;
- cursor:pointer;
+ background:#e63946;color:white;border:none;
+ border-radius:8px;padding:10px 16px;cursor:pointer;
 }
-#container{
- max-width:1200px;
- margin:30px auto;
- padding:0 20px;
-}
-#welcome{
- font-size:22px;
- margin-bottom:25px;
- color:#1d3557;
-}
-.grid{
- display:grid;
- grid-template-columns:1fr 2.2fr;
- gap:25px;
-}
+#container{max-width:1200px;margin:30px auto;padding:0 20px;}
+#welcome{font-size:22px;margin-bottom:25px;color:#1d3557;}
+.grid{display:grid;grid-template-columns:1fr 2.2fr;gap:25px;}
 .box{
- background:white;
- padding:20px;
- border-radius:14px;
+ background:white;padding:20px;border-radius:14px;
  box-shadow:0 4px 15px rgba(0,0,0,.12);
 }
-.box h3{
- margin-top:0;
- color:#1d3557;
-}
+.box h3{margin-top:0;color:#1d3557;}
 .info p{margin:8px 0;}
-
-.statRow{
- display:flex;
- gap:15px;
- margin-bottom:15px;
-}
+.statRow{display:flex;gap:15px;margin-bottom:15px;}
 .statBox{
- flex:1;
- text-align:center;
- padding:15px;
- border-radius:10px;
- color:white;
+ flex:1;text-align:center;padding:15px;border-radius:10px;color:white;
 }
 .statBox b{font-size:22px;}
 .bg1{background:#457b9d;}
 .bg2{background:#2a9d8f;}
 .bg3{background:#e63946;}
-
-.tableWrap{margin-top:15px;}
-table{
- width:100%;
- border-collapse:collapse;
- font-size:14px;
-}
-th,td{
- padding:10px;
- text-align:center;
- border-bottom:1px solid #eee;
-}
-th{
- background:#f1f4fb;
- color:#1d3557;
-}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:15px;}
+th,td{padding:10px;text-align:center;border-bottom:1px solid #eee;}
+th{background:#f1f4fb;color:#1d3557;}
 .pass{color:#2a9d8f;font-weight:bold;}
 .fail{color:#e63946;font-weight:bold;}
-
-canvas{
- width:100%!important;
- height:240px!important;
- margin-top:15px;
-}
-
-.actions{
- display:flex;
- justify-content:flex-end;
- gap:14px;
- margin-top:15px;
-}
+canvas{width:100%!important;height:240px!important;margin-top:15px;}
+.actions{display:flex;justify-content:flex-end;gap:14px;margin-top:15px;}
 .actionBtn{
- border:none;
- border-radius:10px;
- padding:14px 20px;
- font-size:15px;
- cursor:pointer;
- min-width:200px;
- color:white;
+ border:none;border-radius:10px;padding:14px 20px;
+ font-size:15px;cursor:pointer;min-width:200px;color:white;
 }
 #detailBtn{background:#457b9d;}
 #startBtn{background:#2a9d8f;}
+#empty{color:#888;text-align:center;margin-top:15px;}
 </style>
 </head>
 
@@ -126,7 +61,7 @@ canvas{
 <div id="container">
 
  <div id="welcome">
-  Xin chào, <b id="studentName"></b> 👋
+  Xin chào, <b id="studentName">...</b> 👋
  </div>
 
  <div class="grid">
@@ -136,7 +71,7 @@ canvas{
    <p><b>Mã học viên:</b> <span id="infoCode"></span></p>
    <p><b>Họ và tên:</b> <span id="infoName"></span></p>
    <p><b>Đơn vị:</b> <span id="infoUnit"></span></p>
-   <p><b>Trạng thái:</b> Hoạt động</p>
+   <p><b>Trạng thái:</b> <span id="infoStatus"></span></p>
   </div>
 
   <div class="box">
@@ -149,19 +84,18 @@ canvas{
    </div>
 
    <canvas id="chart"></canvas>
+   <div id="empty"></div>
 
-   <div class="tableWrap">
-    <table>
-     <thead>
-      <tr>
-       <th>#</th>
-       <th>Thời gian</th>
-       <th>Kết quả</th>
-      </tr>
-     </thead>
-     <tbody id="logTable"></tbody>
-    </table>
-   </div>
+   <table>
+    <thead>
+     <tr>
+      <th>#</th>
+      <th>Thời gian</th>
+      <th>Kết quả</th>
+     </tr>
+    </thead>
+    <tbody id="logTable"></tbody>
+   </table>
 
    <div class="actions">
     <button id="detailBtn" class="actionBtn">📄 Thống kê chi tiết</button>
@@ -183,37 +117,93 @@ firebase.initializeApp({
  authDomain:"thi-luat-giao-thong.firebaseapp.com",
  projectId:"thi-luat-giao-thong"
 });
-const db = firebase.firestore();
+const db=firebase.firestore();
 
 /* ===== LOGIN CHECK ===== */
-if(localStorage.getItem("userType") !== "student"){
- alert("Bạn chưa đăng nhập");
- location.href = "index.html";
+if(localStorage.getItem("userType")!=="student"){
+ location.href="index.html";
 }
 
-/* ===== USER DATA ===== */
-const code = localStorage.getItem("studentCode");
-const name = localStorage.getItem("studentName");
-const unit = localStorage.getItem("unit") || "";
-
-if(!code || !name){
- alert("Phiên đăng nhập đã hết hạn");
- location.href = "index.html";
+/* ===== GET CODE ===== */
+const rawCode=localStorage.getItem("studentCode")||"";
+const code=rawCode.replace(/\D/g,"").slice(-3);
+if(!code){
+ alert("Không xác định được mã học viên");
+ location.href="index.html";
 }
 
-/* ===== DOM ===== */
-const el = id => document.getElementById(id);
-el("studentName").innerText = name;
-el("infoCode").innerText = code;
-el("infoName").innerText = name;
-el("infoUnit").innerText = unit;
+/* ===== LOAD STUDENT FROM students ===== */
+db.collection("students")
+.where("code","==",code)
+.limit(1)
+.get()
+.then(snap=>{
+ if(snap.empty){
+  alert("Không tìm thấy học viên trong hệ thống");
+  location.href="index.html";
+  return;
+ }
+
+ const s=snap.docs[0].data();
+
+ studentName.innerText=s.name;
+ infoCode.innerText="HV"+s.code;
+ infoName.innerText=s.name;
+ infoUnit.innerText=s.unit||"";
+ infoStatus.innerText=s.status||"Hoạt động";
+
+ loadExamLogs(s.code);
+});
+
+/* ===== LOAD EXAM LOGS ===== */
+function loadExamLogs(code){
+ db.collection("exam_logs")
+ .where("code","==",code)
+ .get()
+ .then(snap=>{
+  let logs=[];
+  snap.forEach(doc=>logs.push(doc.data()));
+
+  if(logs.length===0){
+   empty.innerText="📭 Chưa có dữ liệu thi";
+   return;
+  }
+
+  logs.sort((a,b)=>(b.timestamp?.seconds||0)-(a.timestamp?.seconds||0));
+
+  let total=0,pass=0,fail=0;
+  logTable.innerHTML="";
+
+  logs.forEach((d,i)=>{
+   total++;
+   d.pass?pass++:fail++;
+
+   const time=d.timestamp
+    ? new Date(d.timestamp.seconds*1000).toLocaleString("vi-VN")
+    : "-";
+
+   logTable.innerHTML+=`
+    <tr>
+     <td>${i+1}</td>
+     <td>${time}</td>
+     <td class="${d.pass?'pass':'fail'}">
+      ${d.pass?'ĐẠT':'KHÔNG ĐẠT'}
+     </td>
+    </tr>`;
+  });
+
+  totalExam.innerText=total;
+  passExam.innerText=pass;
+  failExam.innerText=fail;
+  drawChart(pass,fail);
+ });
+}
 
 /* ===== CHART ===== */
-let pieChart = null;
-
-function drawChart(pass, fail){
- if(pieChart) pieChart.destroy();
- pieChart = new Chart(el("chart"),{
+let chart=null;
+function drawChart(pass,fail){
+ if(chart) chart.destroy();
+ chart=new Chart(document.getElementById("chart"),{
   type:"pie",
   data:{
    labels:["Đạt","Không đạt"],
@@ -226,54 +216,13 @@ function drawChart(pass, fail){
  });
 }
 
-/* ===== LOAD DATA ===== */
-db.collection("exam_logs")
- .where("code","==",code)
- .orderBy("timestamp","desc")
- .get()
- .then(snap=>{
-  let total=0, pass=0, fail=0;
-  el("logTable").innerHTML="";
-
-  let i=1;
-  snap.forEach(doc=>{
-   const d = doc.data();
-   total++;
-   d.pass ? pass++ : fail++;
-
-   const time = d.timestamp
-    ? new Date(d.timestamp.seconds*1000).toLocaleString("vi-VN")
-    : "";
-
-   el("logTable").insertAdjacentHTML("beforeend",`
-    <tr>
-     <td>${i++}</td>
-     <td>${time}</td>
-     <td class="${d.pass?'pass':'fail'}">
-      ${d.pass?'ĐẠT':'KHÔNG ĐẠT'}
-     </td>
-    </tr>
-   `);
-  });
-
-  el("totalExam").innerText = total;
-  el("passExam").innerText = pass;
-  el("failExam").innerText = fail;
-
-  drawChart(pass, fail);
- })
- .catch(err=>{
-  console.error(err);
-  alert("Không tải được dữ liệu thống kê");
- });
-
 /* ===== ACTIONS ===== */
-el("logoutBtn").onclick = ()=>{
+logoutBtn.onclick=()=>{
  localStorage.clear();
  location.href="index.html";
 };
-el("startBtn").onclick = ()=>location.href="test.html";
-el("detailBtn").onclick = ()=>location.href="exam_detail.html";
+startBtn.onclick=()=>location.href="test.html";
+detailBtn.onclick=()=>location.href="exam_detail.html";
 </script>
 
 </body>
