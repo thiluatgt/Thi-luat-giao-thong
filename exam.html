@@ -2,6 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HỆ THỐNG KIỂM TRA LUẬT GIAO THÔNG</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -17,9 +18,11 @@ header{
  background:#e63946;color:white;border:none;
  border-radius:8px;padding:10px 16px;cursor:pointer;
 }
+#logoutBtn:hover{background:#d62839;}
 #container{max-width:1200px;margin:30px auto;padding:0 20px;}
 #welcome{font-size:22px;margin-bottom:25px;color:#1d3557;}
 .grid{display:grid;grid-template-columns:1fr 2.2fr;gap:25px;}
+@media(max-width:768px){.grid{grid-template-columns:1fr;}}
 .box{
  background:white;padding:20px;border-radius:14px;
  box-shadow:0 4px 15px rgba(0,0,0,.12);
@@ -30,24 +33,28 @@ header{
 .statBox{
  flex:1;text-align:center;padding:15px;border-radius:10px;color:white;
 }
-.statBox b{font-size:22px;}
+.statBox b{font-size:22px;display:block;margin-top:5px;}
 .bg1{background:#457b9d;}
 .bg2{background:#2a9d8f;}
 .bg3{background:#e63946;}
 table{width:100%;border-collapse:collapse;font-size:14px;margin-top:15px;}
 th,td{padding:10px;text-align:center;border-bottom:1px solid #eee;}
-th{background:#f1f4fb;color:#1d3557;}
+th{background:#f1f4fb;color:#1d3557;font-weight:600;}
 .pass{color:#2a9d8f;font-weight:bold;}
 .fail{color:#e63946;font-weight:bold;}
-canvas{width:100%!important;height:240px!important;margin-top:15px;}
-.actions{display:flex;justify-content:flex-end;gap:14px;margin-top:15px;}
+.chartContainer{position:relative;height:240px;margin-top:15px;}
+canvas{max-height:240px;}
+.actions{display:flex;justify-content:flex-end;gap:14px;margin-top:15px;flex-wrap:wrap;}
 .actionBtn{
  border:none;border-radius:10px;padding:14px 20px;
  font-size:15px;cursor:pointer;min-width:200px;color:white;
+ transition:opacity 0.2s;
 }
+.actionBtn:hover{opacity:0.9;}
 #detailBtn{background:#457b9d;}
 #startBtn{background:#2a9d8f;}
-#empty{color:#888;text-align:center;margin-top:15px;}
+#empty{color:#888;text-align:center;margin-top:15px;font-style:italic;}
+.loading{text-align:center;padding:20px;color:#666;}
 </style>
 </head>
 
@@ -64,10 +71,10 @@ canvas{width:100%!important;height:240px!important;margin-top:15px;}
  <div class="grid">
   <div class="box info">
    <h3>📘 Thông tin học viên</h3>
-   <p><b>Mã học viên:</b> <span id="infoCode"></span></p>
-   <p><b>Họ và tên:</b> <span id="infoName"></span></p>
-   <p><b>Đơn vị:</b> <span id="infoUnit"></span></p>
-   <p><b>Trạng thái:</b> <span id="infoStatus"></span></p>
+   <p><b>Mã học viên:</b> <span id="infoCode">-</span></p>
+   <p><b>Họ và tên:</b> <span id="infoName">-</span></p>
+   <p><b>Đơn vị:</b> <span id="infoUnit">-</span></p>
+   <p><b>Trạng thái:</b> <span id="infoStatus">-</span></p>
   </div>
 
   <div class="box">
@@ -79,10 +86,12 @@ canvas{width:100%!important;height:240px!important;margin-top:15px;}
     <div class="statBox bg3">Không đạt<br><b id="failExam">0</b></div>
    </div>
 
-   <canvas id="chart"></canvas>
+   <div class="chartContainer">
+    <canvas id="chart"></canvas>
+   </div>
    <div id="empty"></div>
 
-   <table>
+   <table id="resultTable" style="display:none;">
     <thead>
      <tr>
       <th>#</th>
@@ -105,106 +114,181 @@ canvas{width:100%!important;height:240px!important;margin-top:15px;}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
+// Khởi tạo Firebase
 firebase.initializeApp({
  apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
  authDomain:"thi-luat-giao-thong.firebaseapp.com",
  projectId:"thi-luat-giao-thong"
 });
-const db=firebase.firestore();
+const db = firebase.firestore();
 
-/* ===== LOGIN CHECK ===== */
-if(localStorage.getItem("userType")!=="student"){
- location.href="index.html";
+/* ===== KIỂM TRA ĐĂNG NHẬP ===== */
+if(localStorage.getItem("userType") !== "student"){
+ location.href = "index.html";
 }
 
-/* ===== LẤY MÃ NGƯỜI DÙNG ===== */
-const raw = (localStorage.getItem("studentCode")||"").trim();
-const inputNumber = raw.replace(/\D/g,"");
+/* ===== LẤY MÃ HỌC VIÊN ===== */
+const raw = (localStorage.getItem("studentCode") || "").trim();
+const inputNumber = raw.replace(/\D/g, "");
 
 if(!inputNumber){
  alert("Dữ liệu đăng nhập không hợp lệ");
- location.href="index.html";
+ location.href = "index.html";
 }
 
-/* ===== LOAD STUDENT (SỬA LỖI CHÍNH) ===== */
-db.collection("students").get().then(snapshot=>{
- let student=null;
+/* ===== TẢI THÔNG TIN HỌC VIÊN ===== */
+db.collection("students").get()
+ .then(snapshot => {
+  let student = null;
 
- snapshot.forEach(doc=>{
-  const s=doc.data();
-  if(!s.code) return;
+  snapshot.forEach(doc => {
+   const s = doc.data();
+   if(!s.code) return;
 
-  const dbNumber=String(s.code).replace(/\D/g,"");
-  if(dbNumber===inputNumber) student=s;
- });
+   const dbNumber = String(s.code).replace(/\D/g, "");
+   if(dbNumber === inputNumber){
+    student = s;
+   }
+  });
 
- if(!student){
-  alert("❌ Không tìm thấy học viên");
-  location.href="index.html";
-  return;
- }
-
- studentName.innerText=student.name;
- infoCode.innerText="HV"+String(student.code).replace(/\D/g,"");
- infoName.innerText=student.name;
- infoUnit.innerText=student.unit||"";
- infoStatus.innerText=student.status||"Hoạt động";
-
- loadExamLogs(String(student.code).replace(/\D/g,""));
-});
-
-/* ===== LOAD LOGS ===== */
-function loadExamLogs(code){
- db.collection("exam_logs").where("code","==",code).get().then(snap=>{
-  let logs=[];
-  snap.forEach(d=>logs.push(d.data()));
-
-  if(!logs.length){
-   empty.innerText="📭 Chưa có dữ liệu";
+  if(!student){
+   alert("❌ Không tìm thấy học viên");
+   location.href = "index.html";
    return;
   }
 
-  logs.sort((a,b)=>(b.timestamp?.seconds||0)-(a.timestamp?.seconds||0));
+  // Hiển thị thông tin
+  studentName.textContent = student.name || "Không xác định";
+  infoCode.textContent = "HV" + String(student.code).replace(/\D/g, "");
+  infoName.textContent = student.name || "Không xác định";
+  infoUnit.textContent = student.unit || "Chưa xác định";
+  infoStatus.textContent = student.status || "Hoạt động";
 
-  let pass=0,fail=0;
-  logTable.innerHTML="";
+  // Tải lịch sử thi
+  loadExamLogs(String(student.code).replace(/\D/g, ""));
+ })
+ .catch(error => {
+  console.error("Lỗi khi tải thông tin học viên:", error);
+  alert("Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại.");
+ });
 
-  logs.forEach((d,i)=>{
-   d.pass?pass++:fail++;
-   const time=d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString("vi-VN"):"-";
-   logTable.innerHTML+=`
-    <tr>
-     <td>${i+1}</td>
-     <td>${time}</td>
-     <td class="${d.pass?'pass':'fail'}">${d.pass?'ĐẠT':'KHÔNG ĐẠT'}</td>
-    </tr>`;
+/* ===== TẢI LỊCH SỬ THI ===== */
+function loadExamLogs(code){
+ db.collection("exam_logs")
+  .where("code", "==", code)
+  .get()
+  .then(snap => {
+   let logs = [];
+   snap.forEach(d => logs.push(d.data()));
+
+   if(!logs.length){
+    empty.textContent = "📭 Chưa có dữ liệu bài thi";
+    document.getElementById('resultTable').style.display = 'none';
+    return;
+   }
+
+   // Sắp xếp theo thời gian mới nhất
+   logs.sort((a, b) => {
+    const timeA = a.timestamp?.seconds || 0;
+    const timeB = b.timestamp?.seconds || 0;
+    return timeB - timeA;
+   });
+
+   let pass = 0, fail = 0;
+   logTable.innerHTML = "";
+
+   logs.forEach((d, i) => {
+    if(d.pass) {
+     pass++;
+    } else {
+     fail++;
+    }
+    
+    const time = d.timestamp 
+     ? new Date(d.timestamp.seconds * 1000).toLocaleString("vi-VN")
+     : "-";
+    
+    logTable.innerHTML += `
+     <tr>
+      <td>${i + 1}</td>
+      <td>${time}</td>
+      <td class="${d.pass ? 'pass' : 'fail'}">
+       ${d.pass ? 'ĐẠT' : 'KHÔNG ĐẠT'}
+      </td>
+     </tr>`;
+   });
+
+   // Cập nhật thống kê
+   totalExam.textContent = logs.length;
+   passExam.textContent = pass;
+   failExam.textContent = fail;
+   
+   // Hiển thị bảng
+   document.getElementById('resultTable').style.display = 'table';
+   empty.textContent = "";
+   
+   // Vẽ biểu đồ
+   drawChart(pass, fail);
+  })
+  .catch(error => {
+   console.error("Lỗi khi tải lịch sử thi:", error);
+   empty.textContent = "❌ Không thể tải dữ liệu";
   });
-
-  totalExam.innerText=logs.length;
-  passExam.innerText=pass;
-  failExam.innerText=fail;
-  drawChart(pass,fail);
- });
 }
 
-/* ===== CHART ===== */
-let chart=null;
-function drawChart(p,f){
- if(chart) chart.destroy();
- chart=new Chart(document.getElementById("chart"),{
-  type:"pie",
-  data:{
-   labels:["Đạt","Không đạt"],
-   datasets:[{data:[p,f],backgroundColor:["#2a9d8f","#e63946"]}]
+/* ===== VẼ BIỂU ĐỒ ===== */
+let chart = null;
+function drawChart(p, f){
+ const ctx = document.getElementById("chart");
+ 
+ if(chart){
+  chart.destroy();
+ }
+ 
+ chart = new Chart(ctx, {
+  type: "pie",
+  data: {
+   labels: ["Đạt", "Không đạt"],
+   datasets: [{
+    data: [p, f],
+    backgroundColor: ["#2a9d8f", "#e63946"],
+    borderWidth: 2,
+    borderColor: "#fff"
+   }]
   },
-  options:{responsive:true,maintainAspectRatio:false}
+  options: {
+   responsive: true,
+   maintainAspectRatio: true,
+   plugins: {
+    legend: {
+     position: 'bottom',
+     labels: {
+      padding: 15,
+      font: {
+       size: 13
+      }
+     }
+    }
+   }
+  }
  });
 }
 
-/* ===== BUTTONS ===== */
-logoutBtn.onclick=()=>{localStorage.clear();location.href="index.html";}
-startBtn.onclick=()=>location.href="test.html";
-detailBtn.onclick=()=>location.href="exam_detail.html";
+/* ===== XỬ LÝ CÁC NÚT ===== */
+logoutBtn.onclick = () => {
+ if(confirm("Bạn có chắc muốn đăng xuất?")){
+  localStorage.clear();
+  location.href = "index.html";
+ }
+};
+
+startBtn.onclick = () => {
+ location.href = "test.html";
+};
+
+detailBtn.onclick = () => {
+ location.href = "exam_detail.html";
+};
 </script>
 
 </body>
