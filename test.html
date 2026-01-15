@@ -2,23 +2,35 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>CHỌN BỘ ĐỀ KIỂM TRA</title>
+<title>CHỌN BỘ ĐỀ THI</title>
 
 <style>
-body{margin:0;font-family:Arial;background:#eef2f6;}
+body{
+ margin:0;font-family:Arial,Helvetica,sans-serif;
+ background:#eef2f6;
+}
 header{
  background:#1d3557;color:white;
- padding:20px;text-align:center;
+ padding:22px;text-align:center;
  font-size:22px;font-weight:bold;
 }
-.container{max-width:1200px;margin:40px auto;padding:0 20px;}
+.container{
+ max-width:1200px;margin:35px auto;
+ padding:0 20px;
+}
+.section{
+ margin-bottom:40px;
+}
+.section h2{
+ color:#1d3557;margin-bottom:15px;
+}
 .grid{
  display:grid;
- grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
- gap:20px;
+ grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+ gap:25px;
 }
 .card{
- background:white;padding:20px;border-radius:14px;
+ background:white;padding:22px;border-radius:14px;
  box-shadow:0 4px 15px rgba(0,0,0,.12);
  cursor:pointer;transition:.2s;
 }
@@ -27,21 +39,32 @@ header{
  box-shadow:0 6px 20px rgba(0,0,0,.18);
 }
 .card h3{margin-top:0;color:#1d3557;}
-.card p{margin:6px 0;color:#555;}
+.card p{margin:6px 0;color:#555;font-size:15px;}
 
-#detailBox{
- display:none;background:white;border-radius:14px;
- padding:25px;box-shadow:0 6px 20px rgba(0,0,0,.18);
- max-width:720px;margin:40px auto;
+.detail{
+ display:none;
+ max-width:800px;margin:40px auto;
+ background:white;padding:25px;border-radius:16px;
+ box-shadow:0 6px 22px rgba(0,0,0,.18);
+}
+.detail h2{color:#1d3557;margin-top:0;}
+.infoGrid{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:15px;margin-top:15px;
+}
+.infoBox{
+ background:#f1f4fb;padding:14px;
+ border-radius:10px;
 }
 .actions{
- margin-top:25px;display:flex;
- gap:15px;justify-content:center;
+ margin-top:25px;
+ display:flex;justify-content:center;gap:18px;
 }
 .btn{
- border:none;border-radius:10px;
- padding:14px 22px;font-size:16px;
- cursor:pointer;min-width:220px;color:white;
+ border:none;border-radius:12px;
+ padding:15px 26px;font-size:16px;
+ cursor:pointer;color:white;min-width:240px;
 }
 .btnStart{background:#2a9d8f;}
 .btnBack{background:#457b9d;}
@@ -52,15 +75,33 @@ header{
 
 <header>HỆ THỐNG KIỂM TRA LUẬT GIAO THÔNG</header>
 
-<div class="container" id="listBox">
- <h2 style="color:#1d3557">🚛 Kiểm tra lái xe ô tô quân sự</h2>
- <div class="grid" id="setList"></div>
+<div class="container" id="mainBox">
+
+ <!-- ===== KHỐI 1: A1 ===== -->
+ <div class="section">
+  <h2>🏍️ Sát hạch lái xe mô tô quân sự</h2>
+  <div class="grid" id="a1Box"></div>
+ </div>
+
+ <!-- ===== KHỐI 2: Ô TÔ ===== -->
+ <div class="section">
+  <h2>🚛 Kiểm tra lái xe ô tô quân sự</h2>
+  <div class="grid" id="carBox"></div>
+ </div>
+
 </div>
 
-<div id="detailBox">
+<!-- ===== CHI TIẾT BỘ ĐỀ ===== -->
+<div class="detail" id="detailBox">
  <h2 id="dName"></h2>
- <p><b>Mã bộ đề:</b> <span id="dCode"></span></p>
- <p><b>Mô tả:</b> <span id="dDesc"></span></p>
+ <p id="dDesc"></p>
+
+ <div class="infoGrid">
+  <div class="infoBox">📘 <b>Số câu hỏi:</b> <span id="dCount"></span></div>
+  <div class="infoBox">⏱️ <b>Thời gian:</b> <span id="dTime"></span> phút</div>
+  <div class="infoBox">✅ <b>Kết quả đạt:</b> <span id="dPass"></span> câu đúng</div>
+  <div class="infoBox">🆔 <b>Mã bộ đề:</b> <span id="dCode"></span></div>
+ </div>
 
  <div class="actions">
   <button class="btn btnStart" onclick="startExam()">▶ Bắt đầu làm bài</button>
@@ -82,42 +123,64 @@ const db=firebase.firestore();
 
 let currentSet=null;
 
-/* ===== LOAD QUESTION SETS ===== */
+/* ===== LOAD A1 ===== */
 db.collection("question_sets")
+ .where("code","==","A1")
  .where("active","==",true)
  .get()
  .then(snap=>{
-  if(snap.empty){
-   setList.innerHTML="<p>Chưa có bộ đề nào</p>";
-   return;
-  }
   snap.forEach(doc=>{
    const d=doc.data();
-   setList.insertAdjacentHTML("beforeend",`
+   a1Box.innerHTML+=`
     <div class="card" onclick="showDetail('${doc.id}')">
      <h3>${d.name}</h3>
-     <p><b>Mã:</b> ${d.code}</p>
      <p>${d.description}</p>
+     <p><b>Số câu:</b> ${d.questionCount}</p>
+     <p><b>Thời gian:</b> ${d.time} phút</p>
+     <p><b>Đạt:</b> ${d.passScore} câu đúng</p>
     </div>
-   `);
+   `;
+  });
+ });
+
+/* ===== LOAD Ô TÔ ===== */
+db.collection("question_sets")
+ .where("code","in",["CAR_150","CAR_450","CAR_600"])
+ .where("active","==",true)
+ .get()
+ .then(snap=>{
+  snap.forEach(doc=>{
+   const d=doc.data();
+   carBox.innerHTML+=`
+    <div class="card" onclick="showDetail('${doc.id}')">
+     <h3>${d.name}</h3>
+     <p>${d.description}</p>
+     <p><b>Số câu:</b> ${d.questionCount}</p>
+     <p><b>Thời gian:</b> ${d.time} phút</p>
+     <p><b>Đạt:</b> ${d.passScore} câu đúng</p>
+    </div>
+   `;
   });
  });
 
 function showDetail(id){
  db.collection("question_sets").doc(id).get().then(doc=>{
   currentSet={id,...doc.data()};
-  listBox.style.display="none";
+  mainBox.style.display="none";
   detailBox.style.display="block";
 
   dName.innerText=currentSet.name;
-  dCode.innerText=currentSet.code;
   dDesc.innerText=currentSet.description;
+  dCount.innerText=currentSet.questionCount;
+  dTime.innerText=currentSet.time;
+  dPass.innerText=currentSet.passScore;
+  dCode.innerText=currentSet.code;
  });
 }
 
 function back(){
  detailBox.style.display="none";
- listBox.style.display="block";
+ mainBox.style.display="block";
 }
 
 function startExam(){
