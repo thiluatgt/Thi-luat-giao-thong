@@ -9,62 +9,32 @@
 
 <style>
 body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#eef2f6;}
-header{
- background:#1d3557;color:white;
- padding:18px 30px;
- display:flex;justify-content:space-between;align-items:center;
-}
-#logoutBtn{
- background:#e63946;color:white;border:none;
- border-radius:8px;padding:10px 16px;cursor:pointer;
-}
-#logoutBtn:hover{background:#d62839;}
+header{background:#1d3557;color:white;padding:18px 30px;display:flex;justify-content:space-between;align-items:center;}
+#logoutBtn{background:#e63946;color:white;border:none;border-radius:8px;padding:10px 16px;cursor:pointer;}
 #container{max-width:1200px;margin:30px auto;padding:0 20px;}
 #welcome{font-size:22px;margin-bottom:25px;color:#1d3557;}
 .grid{display:grid;grid-template-columns:1fr 2.2fr;gap:25px;}
 @media(max-width:768px){.grid{grid-template-columns:1fr;}}
-.box{
- background:white;padding:20px;border-radius:14px;
- box-shadow:0 4px 15px rgba(0,0,0,.12);
-}
+.box{background:white;padding:20px;border-radius:14px;box-shadow:0 4px 15px rgba(0,0,0,.12);}
 .box h3{margin-top:0;color:#1d3557;}
 .info p{margin:8px 0;}
-
 .statRow{display:flex;gap:15px;margin-bottom:15px;}
-.statBox{
- flex:1;text-align:center;padding:15px;
- border-radius:10px;color:white;
-}
-.statBox b{font-size:22px;display:block;margin-top:5px;}
+.statBox{flex:1;text-align:center;padding:15px;border-radius:10px;color:white;}
+.statBox b{font-size:22px;}
 .bg1{background:#457b9d;}
 .bg2{background:#2a9d8f;}
 .bg3{background:#e63946;}
-
-.chartContainer{height:240px;margin-top:15px;}
-canvas{max-height:240px;}
-
 table{width:100%;border-collapse:collapse;font-size:14px;margin-top:15px;}
 th,td{padding:10px;text-align:center;border-bottom:1px solid #eee;}
 th{background:#f1f4fb;color:#1d3557;}
 .pass{color:#2a9d8f;font-weight:bold;}
 .fail{color:#e63946;font-weight:bold;}
-
-.actions{
- display:flex;justify-content:flex-end;
- gap:14px;margin-top:15px;flex-wrap:wrap;
-}
-.actionBtn{
- border:none;border-radius:10px;
- padding:14px 20px;font-size:15px;
- cursor:pointer;min-width:200px;color:white;
-}
+.chartBox{height:240px;margin-top:15px;}
+.actions{display:flex;justify-content:flex-end;gap:14px;margin-top:15px;flex-wrap:wrap;}
+.actionBtn{border:none;border-radius:10px;padding:14px 20px;font-size:15px;cursor:pointer;min-width:200px;color:white;}
 #detailBtn{background:#457b9d;}
 #startBtn{background:#2a9d8f;}
-
-#empty{
- color:#888;text-align:center;
- margin-top:15px;font-style:italic;
-}
+#empty{color:#888;text-align:center;margin-top:15px;font-style:italic;}
 </style>
 </head>
 
@@ -76,31 +46,27 @@ th{background:#f1f4fb;color:#1d3557;}
 </header>
 
 <div id="container">
-
- <div id="welcome">
-  Xin chào, <b id="studentName">...</b> 👋
- </div>
+ <div id="welcome">Xin chào, <b id="studentName"></b> 👋</div>
 
  <div class="grid">
-
   <div class="box info">
    <h3>📘 Thông tin học viên</h3>
-   <p><b>Mã học viên:</b> <span id="infoCode">-</span></p>
-   <p><b>Họ và tên:</b> <span id="infoName">-</span></p>
-   <p><b>Đơn vị:</b> <span id="infoUnit">-</span></p>
-   <p><b>Trạng thái:</b> <span id="infoStatus">-</span></p>
+   <p><b>Mã học viên:</b> <span id="infoCode"></span></p>
+   <p><b>Họ và tên:</b> <span id="infoName"></span></p>
+   <p><b>Đơn vị:</b> <span id="infoUnit"></span></p>
+   <p><b>Trạng thái:</b> <span id="infoStatus"></span></p>
   </div>
 
   <div class="box">
    <h3>📊 Thống kê kết quả</h3>
 
    <div class="statRow">
-    <div class="statBox bg1">Tổng lượt<b id="totalExam">0</b></div>
-    <div class="statBox bg2">Đạt<b id="passExam">0</b></div>
-    <div class="statBox bg3">Không đạt<b id="failExam">0</b></div>
+    <div class="statBox bg1">Tổng lượt<br><b id="totalExam">0</b></div>
+    <div class="statBox bg2">Đạt<br><b id="passExam">0</b></div>
+    <div class="statBox bg3">Không đạt<br><b id="failExam">0</b></div>
    </div>
 
-   <div class="chartContainer">
+   <div class="chartBox">
     <canvas id="chart"></canvas>
    </div>
 
@@ -121,7 +87,6 @@ th{background:#f1f4fb;color:#1d3557;}
     <button id="detailBtn" class="actionBtn">📄 Thống kê chi tiết</button>
     <button id="startBtn" class="actionBtn">▶ Làm bài kiểm tra</button>
    </div>
-
   </div>
  </div>
 </div>
@@ -130,7 +95,6 @@ th{background:#f1f4fb;color:#1d3557;}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-/* ===== FIREBASE ===== */
 firebase.initializeApp({
  apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
  authDomain:"thi-luat-giao-thong.firebaseapp.com",
@@ -143,19 +107,18 @@ if(localStorage.getItem("userType") !== "student"){
  location.href="index.html";
 }
 
-/* ===== NORMALIZE STUDENT CODE ===== */
+/* ===== CHUẨN HÓA MÃ HỌC VIÊN ===== */
 const raw = (localStorage.getItem("studentCode") || "").trim();
-const numberOnly = raw.replace(/\D/g,"");
+const digits = raw.replace(/\D/g,"");
 
-if(!numberOnly){
+if(!digits){
  alert("Dữ liệu đăng nhập không hợp lệ");
  location.href="index.html";
 }
 
-/* Chuẩn hoá: 001 */
-const studentCode = numberOnly.padStart(3,"0");
+const studentCode = digits.padStart(3,"0"); // <<< QUAN TRỌNG
 
-/* ===== LOAD STUDENT (FIXED) ===== */
+/* ===== LOAD STUDENT ===== */
 db.collection("students")
  .where("code","==",studentCode)
  .limit(1)
@@ -169,21 +132,18 @@ db.collection("students")
 
   const s = snap.docs[0].data();
 
-  studentName.textContent = s.name || "";
+  studentName.textContent = s.name;
   infoCode.textContent = "HV" + s.code;
-  infoName.textContent = s.name || "";
+  infoName.textContent = s.name;
   infoUnit.textContent = s.unit || "";
   infoStatus.textContent = s.status || "Hoạt động";
 
-  loadExamLogs(studentCode);
+  loadExamLogs(s.code);
  });
 
 /* ===== LOAD EXAM LOGS ===== */
 function loadExamLogs(code){
- db.collection("exam_logs")
- .where("code","==",code)
- .get()
- .then(snap=>{
+ db.collection("exam_logs").where("code","==",code).get().then(snap=>{
   let logs=[];
   snap.forEach(d=>logs.push(d.data()));
 
@@ -199,17 +159,12 @@ function loadExamLogs(code){
 
   logs.forEach((d,i)=>{
    d.pass?pass++:fail++;
-   const time=d.timestamp
-    ? new Date(d.timestamp.seconds*1000).toLocaleString("vi-VN")
-    : "-";
-
+   const time=d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString("vi-VN"):"-";
    logTable.innerHTML+=`
     <tr>
      <td>${i+1}</td>
      <td>${time}</td>
-     <td class="${d.pass?'pass':'fail'}">
-      ${d.pass?'ĐẠT':'KHÔNG ĐẠT'}
-     </td>
+     <td class="${d.pass?'pass':'fail'}">${d.pass?'ĐẠT':'KHÔNG ĐẠT'}</td>
     </tr>`;
   });
 
@@ -231,10 +186,7 @@ function drawChart(p,f){
   type:"pie",
   data:{
    labels:["Đạt","Không đạt"],
-   datasets:[{
-    data:[p,f],
-    backgroundColor:["#2a9d8f","#e63946"]
-   }]
+   datasets:[{data:[p,f],backgroundColor:["#2a9d8f","#e63946"]}]
   },
   options:{responsive:true,maintainAspectRatio:false}
  });
