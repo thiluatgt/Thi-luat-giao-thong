@@ -2,173 +2,75 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>ADMIN – CHUẨN HÓA DATABASE</title>
-
+<title>ADMIN – Chuẩn hóa Database</title>
 <style>
-body{
- font-family:Arial,Helvetica,sans-serif;
- background:#f4f6f8;
- margin:0;
- padding:30px;
-}
-h1{color:#1d3557;}
-.box{
- background:white;
- padding:20px;
- border-radius:12px;
- box-shadow:0 4px 15px rgba(0,0,0,.12);
- max-width:900px;
- margin:auto;
-}
-button{
- padding:14px 22px;
- border:none;
- border-radius:10px;
- font-size:15px;
- cursor:pointer;
- margin-right:12px;
- color:white;
-}
-#btnStudent{background:#2a9d8f;}
-#btnLog{background:#457b9d;}
-#clearBtn{background:#999;}
-#log{
- margin-top:20px;
- background:#111;
- color:#0f0;
- padding:15px;
- height:320px;
- overflow:auto;
- font-size:13px;
- border-radius:8px;
-}
-.count{
- margin-top:15px;
- font-weight:bold;
-}
-.warn{
- margin-top:10px;
- color:#e63946;
- font-size:14px;
-}
+body{font-family:Arial;background:#f4f6f8;padding:30px;}
+.box{background:white;padding:20px;border-radius:12px;max-width:900px;margin:auto;}
+button{padding:14px 22px;border:none;border-radius:10px;margin-right:10px;color:white;font-size:15px;cursor:pointer;}
+#s{background:#2a9d8f;}#l{background:#457b9d;}
+#log{margin-top:15px;background:#111;color:#0f0;padding:15px;height:350px;overflow:auto;}
 </style>
 </head>
-
 <body>
-
 <div class="box">
- <h1>🛠 ADMIN – CHUẨN HÓA DATABASE</h1>
-
- <p>
- Trang này dùng để <b>chuẩn hóa dữ liệu Firestore</b>.  
- Chạy xong có thể đóng tab.
- </p>
-
- <button id="btnStudent">Chuẩn hóa STUDENTS</button>
- <button id="btnLog">Chuẩn hóa EXAM_LOGS</button>
- <button id="clearBtn">Xóa log</button>
-
- <div class="count" id="count"></div>
- <div id="log"></div>
-
- <div class="warn">
- ⚠️ Chỉ ADMIN được mở trang này.
- </div>
+<h2>ADMIN – Chuẩn hóa Database</h2>
+<button id="s">Chuẩn hóa STUDENTS</button>
+<button id="l">Chuẩn hóa EXAM_LOGS</button>
+<div id="log"></div>
 </div>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
 <script>
 firebase.initializeApp({
  apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
  authDomain:"thi-luat-giao-thong.firebaseapp.com",
  projectId:"thi-luat-giao-thong"
 });
-const db = firebase.firestore();
+const db=firebase.firestore();
+const log=d=>document.getElementById("log").innerHTML+=d+"<br>";
 
-const logBox = document.getElementById("log");
-const countBox = document.getElementById("count");
+/* STUDENTS: code phải là NUMBER */
+document.getElementById("s").onclick=async()=>{
+ const snap=await db.collection("students").get();
+ for(const doc of snap.docs){
+  const d=doc.data();
+  let u={};
 
-function log(msg){
- logBox.innerHTML += msg + "<br>";
- logBox.scrollTop = logBox.scrollHeight;
+  if(typeof d.code==="string"){
+   u.code=Number(d.code.replace(/\D/g,""));
+  }
+  if(d.name && !d.name_lower){
+   u.name_lower=d.name.toLowerCase();
+  }
+  if(!d.status) u.status="Hoạt động";
+
+  if(Object.keys(u).length){
+   await db.collection("students").doc(doc.id).update(u);
+   log("✔ "+doc.id+" → "+JSON.stringify(u));
+  }
+ }
+ log("🎉 STUDENTS xong");
 }
 
-/* ===== CHUẨN HÓA STUDENTS ===== */
-document.getElementById("btnStudent").onclick = async ()=>{
- log("▶ BẮT ĐẦU CHUẨN HÓA STUDENTS...");
- let fixed = 0;
-
- const snap = await db.collection("students").get();
+/* EXAM_LOGS: code là STRING */
+document.getElementById("l").onclick=async()=>{
+ const snap=await db.collection("exam_logs").get();
  for(const doc of snap.docs){
-  const d = doc.data();
-  let update = {};
+  const d=doc.data();
+  let u={};
 
-  // code → string 3 số
-  if(typeof d.code === "number"){
-   update.code = String(d.code).padStart(3,"0");
-  }
-  if(typeof d.code === "string" && d.code.length < 3){
-   update.code = d.code.padStart(3,"0");
+  if(typeof d.code==="number"){
+   u.code=String(d.code);
   }
 
-  // name_lower
-  if(d.name && !d.name_lower){
-   update.name_lower = d.name.toLowerCase();
-  }
-
-  // status
-  if(!d.status){
-   update.status = "Hoạt động";
-  }
-
-  if(Object.keys(update).length > 0){
-   await db.collection("students").doc(doc.id).update(update);
-   log(`✔ Student ${doc.id}: ${JSON.stringify(update)}`);
-   fixed++;
+  if(Object.keys(u).length){
+   await db.collection("exam_logs").doc(doc.id).update(u);
+   log("✔ "+doc.id+" → "+JSON.stringify(u));
   }
  }
-
- countBox.innerText = `✅ STUDENTS đã chuẩn hóa: ${fixed}`;
- log("🎉 HOÀN TẤT STUDENTS");
-};
-
-/* ===== CHUẨN HÓA EXAM_LOGS ===== */
-document.getElementById("btnLog").onclick = async ()=>{
- log("▶ BẮT ĐẦU CHUẨN HÓA EXAM_LOGS...");
- let fixed = 0;
-
- const snap = await db.collection("exam_logs").get();
- for(const doc of snap.docs){
-  const d = doc.data();
-  let update = {};
-
-  if(typeof d.code === "number"){
-   update.code = String(d.code).padStart(3,"0");
-  }
-  if(typeof d.code === "string" && d.code.length < 3){
-   update.code = d.code.padStart(3,"0");
-  }
-
-  if(Object.keys(update).length > 0){
-   await db.collection("exam_logs").doc(doc.id).update(update);
-   log(`✔ Log ${doc.id}: ${JSON.stringify(update)}`);
-   fixed++;
-  }
- }
-
- countBox.innerText = `✅ EXAM_LOGS đã chuẩn hóa: ${fixed}`;
- log("🎉 HOÀN TẤT EXAM_LOGS");
-};
-
-/* ===== CLEAR LOG ===== */
-document.getElementById("clearBtn").onclick = ()=>{
- logBox.innerHTML="";
- countBox.innerText="";
-};
+ log("🎉 EXAM_LOGS xong");
+}
 </script>
-
 </body>
 </html>
