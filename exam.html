@@ -124,35 +124,36 @@ if(localStorage.getItem("userType")!=="student"){
  location.href="index.html";
 }
 
-/* ===== GET CODE ===== */
-const rawCode=localStorage.getItem("studentCode")||"";
-const code=rawCode.replace(/\D/g,"").slice(-3);
-if(!code){
- alert("Không xác định được mã học viên");
- location.href="index.html";
-}
+/* ===== GET LOGIN VALUE ===== */
+const rawInput = localStorage.getItem("studentCode") || "";
+const inputNumber = rawInput.replace(/\D/g,""); // chỉ lấy số
 
-/* ===== LOAD STUDENT FROM students ===== */
-db.collection("students")
-.where("code","==",code)
-.limit(1)
-.get()
-.then(snap=>{
- if(snap.empty){
-  alert("Không tìm thấy học viên trong hệ thống");
+/* ===== LOAD STUDENT (SAFE MODE) ===== */
+db.collection("students").get().then(snap=>{
+ let found=null;
+
+ snap.forEach(doc=>{
+  const s=doc.data();
+  const dbNumber=String(s.code).replace(/\D/g,"");
+  if(dbNumber===inputNumber){
+   found=s;
+  }
+ });
+
+ if(!found){
+  alert("❌ Không tìm thấy học viên trong hệ thống");
   location.href="index.html";
   return;
  }
 
- const s=snap.docs[0].data();
+ /* ===== SHOW INFO ===== */
+ studentName.innerText=found.name;
+ infoCode.innerText="HV"+String(found.code).replace(/\D/g,"");
+ infoName.innerText=found.name;
+ infoUnit.innerText=found.unit||"";
+ infoStatus.innerText=found.status||"Hoạt động";
 
- studentName.innerText=s.name;
- infoCode.innerText="HV"+s.code;
- infoName.innerText=s.name;
- infoUnit.innerText=s.unit||"";
- infoStatus.innerText=s.status||"Hoạt động";
-
- loadExamLogs(s.code);
+ loadExamLogs(String(found.code).replace(/\D/g,""));
 });
 
 /* ===== LOAD EXAM LOGS ===== */
@@ -203,7 +204,7 @@ function loadExamLogs(code){
 let chart=null;
 function drawChart(pass,fail){
  if(chart) chart.destroy();
- chart=new Chart(document.getElementById("chart"),{
+ chart=new Chart(chart,{
   type:"pie",
   data:{
    labels:["Đạt","Không đạt"],
