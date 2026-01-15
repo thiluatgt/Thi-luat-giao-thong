@@ -2,247 +2,182 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>HỆ THỐNG KIỂM TRA LUẬT GIAO THÔNG ĐƯỜNG BỘ TRỰC TUYẾN</title>
+<title>CHỌN BỘ ĐỀ KIỂM TRA</title>
 
 <style>
 body{
  margin:0;
- font-family:Arial;
+ font-family:Arial,Helvetica,sans-serif;
  background:#eef2f6;
 }
-#header{
- position:fixed;
- top:0;left:0;right:0;
- height:90px;
+header{
  background:#1d3557;
  color:white;
- display:flex;
- justify-content:space-between;
- align-items:center;
- padding:0 40px;
- z-index:1000;
+ padding:20px;
+ text-align:center;
+ font-size:22px;
+ font-weight:bold;
 }
-#studentBox{text-align:center;}
-#timer{font-size:30px;font-weight:bold;}
-#main{
- max-width:1100px;
- margin:120px auto 40px;
+.container{
+ max-width:1200px;
+ margin:40px auto;
  padding:0 20px;
- display:flex;
- gap:25px;
 }
-#content{
- flex:3;
- background:white;
- padding:30px;
- border-radius:12px;
- min-height:520px;
- box-shadow:0 5px 20px rgba(0,0,0,0.15);
+.section{
+ margin-bottom:40px;
 }
-#side{
- flex:1;
- background:white;
- padding:15px;
- border-radius:12px;
- box-shadow:0 5px 20px rgba(0,0,0,0.15);
+.section h2{
+ color:#1d3557;
+ margin-bottom:20px;
 }
-.answer{
- display:block;
- margin-bottom:10px;
- padding:10px;
- border-radius:6px;
- background:#f4f6f8;
- cursor:pointer;
-}
-#map{
+.grid{
  display:grid;
- grid-template-columns:repeat(5,1fr);
- gap:8px;
+ grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+ gap:20px;
 }
-.mapItem{
- width:34px;height:34px;
- border-radius:6px;
- display:flex;
- align-items:center;
- justify-content:center;
- cursor:pointer;
- border:1px solid #ccc;
-}
-#sideNav{
- margin-top:20px;
- display:flex;
- flex-direction:column;
- gap:12px;
-}
-.sideBtn{
- padding:12px;
- font-size:16px;
- border:none;
- border-radius:8px;
- cursor:pointer;
-}
-#prevBtn{background:#457b9d;color:white;}
-#nextBtn{background:#1d3557;color:white;}
-#submitBtn{background:#e63946;color:white;display:none;}
-/* ===== SELECT SET ===== */
-#setBox{
- max-width:600px;
- margin:160px auto;
+.card{
  background:white;
- padding:30px;
- border-radius:12px;
- box-shadow:0 5px 20px rgba(0,0,0,0.2);
-}
-.setItem{
- border:1px solid #ccc;
- padding:15px;
- border-radius:8px;
- margin-bottom:15px;
+ padding:20px;
+ border-radius:14px;
+ box-shadow:0 4px 15px rgba(0,0,0,.12);
  cursor:pointer;
+ transition:.2s;
 }
-.setItem:hover{background:#f1f5f9;}
+.card:hover{
+ transform:translateY(-4px);
+ box-shadow:0 6px 20px rgba(0,0,0,.18);
+}
+.card h3{
+ margin-top:0;
+ color:#1d3557;
+}
+.card p{margin:6px 0;color:#555;}
+
+#detailBox{
+ display:none;
+ background:white;
+ border-radius:14px;
+ padding:25px;
+ box-shadow:0 6px 20px rgba(0,0,0,.18);
+ max-width:700px;
+ margin:40px auto;
+}
+#detailBox h2{margin-top:0;color:#1d3557;}
+.infoRow{margin:10px 0;}
+.actions{
+ margin-top:25px;
+ display:flex;
+ gap:15px;
+ justify-content:center;
+}
+.btn{
+ border:none;
+ border-radius:10px;
+ padding:14px 22px;
+ font-size:16px;
+ cursor:pointer;
+ min-width:200px;
+ color:white;
+}
+.btnStart{background:#2a9d8f;}
+.btnBack{background:#457b9d;}
 </style>
 </head>
 
 <body>
 
-<div id="header">
- <div></div>
- <div id="studentBox">
-  <b id="studentName"></b><br>
-  <span id="studentInfo"></span>
- </div>
- <div id="timer">30:00</div>
-</div>
+<header>
+ HỆ THỐNG KIỂM TRA LUẬT GIAO THÔNG ĐƯỜNG BỘ
+</header>
 
-<!-- ===== CHỌN BỘ ĐỀ ===== -->
-<div id="setBox">
- <h2>📚 CHỌN BỘ CÂU HỎI</h2>
- <div id="setList"></div>
-</div>
+<div class="container" id="listBox">
 
-<!-- ===== MAIN EXAM ===== -->
-<div id="main" style="display:none;">
- <div id="content">
-  <div id="questionBox"></div>
+ <!-- ===== MÔ TÔ ===== -->
+ <div class="section">
+  <h2>🚦 Sát hạch lái xe mô tô quân sự</h2>
+  <div class="grid">
+   <div class="card" onclick="showDetail(moto)">
+    <h3>Bộ đề mô tô quân sự</h3>
+    <p>Đối tượng: Lái xe mô tô</p>
+    <p>Số câu: 25</p>
+    <p>Thời gian: 19 phút</p>
+   </div>
+  </div>
  </div>
 
- <div id="side">
-  <div id="map"></div>
-
-  <div id="sideNav">
-   <button id="prevBtn" class="sideBtn" onclick="prevQuestion()">⬅ Câu trước</button>
-   <button id="nextBtn" class="sideBtn" onclick="nextQuestion()">Câu tiếp theo ➡</button>
-   <button id="submitBtn" class="sideBtn" onclick="submitExam()">📤 NỘP BÀI</button>
+ <!-- ===== Ô TÔ ===== -->
+ <div class="section">
+  <h2>🚛 Kiểm tra lái xe ô tô quân sự</h2>
+  <div class="grid">
+   <div class="card" onclick="showDetail(car1)">
+    <h3>Bộ đề số 1</h3>
+    <p>Số câu: 30</p>
+    <p>Thời gian: 30 phút</p>
+   </div>
+   <div class="card" onclick="showDetail(car2)">
+    <h3>Bộ đề số 2</h3>
+    <p>Số câu: 30</p>
+    <p>Thời gian: 30 phút</p>
+   </div>
+   <div class="card" onclick="showDetail(car3)">
+    <h3>Bộ đề số 3</h3>
+    <p>Số câu: 30</p>
+    <p>Thời gian: 30 phút</p>
+   </div>
   </div>
  </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- ===== CHI TIẾT ===== -->
+<div id="detailBox">
+ <h2 id="dTitle"></h2>
 
-<script>
-firebase.initializeApp({
- apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
- authDomain:"thi-luat-giao-thong.firebaseapp.com",
- projectId:"thi-luat-giao-thong"
-});
-const db=firebase.firestore();
+ <div class="infoRow"><b>Đối tượng:</b>22/25 điểm trở lên"
+ ],
+ examId:"moto"
+};
 
-/* USER */
-const studentCode=localStorage.getItem("studentCode")||"KHÁCH";
-const studentName=localStorage.getItem("studentName")||"Khách";
-const unit=localStorage.getItem("unit")||"Tự do";
-studentName.innerText="👤 "+studentName;
-studentInfo.innerText="Mã HV: "+studentCode+" | "+unit;
+const car1={
+ title:"Bộ đề kiểm tra ô tô quân sự – Số 1",
+ target:"Lái xe ô tô quân sự",
+ total:30,
+ time:"30 phút",
+ rule:[
+  "Mỗi câu 1 điểm",
+  "Sai câu điểm liệt: Không đạt",
+  "Đạt từ 27/30 điểm trở lên"
+ ],
+ examId:"car1"
+};
 
-/* ===== LOAD SETS ===== */
-db.collection("question_sets").where("active","==",true).get()
-.then(snap=>{
- snap.forEach(doc=>{
-  const s=doc.data();
-  const div=document.createElement("div");
-  div.className="setItem";
-  div.innerHTML=`<b>${s.name}</b><br><small>${s.description}</small>`;
-  div.onclick=()=>selectSet(s.code);
-  setList.appendChild(div);
- });
-});
+const car2={...car1,title:"Bộ đề kiểm tra ô tô quân sự – Số 2",examId:"car2"};
+const car3={...car1,title:"Bộ đề kiểm tra ô tô quân sự – Số 3",examId:"car3"};
 
-/* ===== EXAM ===== */
-let questions=[],answers=[],current=0;
+let currentExam=null;
 
-function selectSet(code){
- document.getElementById("setBox").style.display="none";
- document.getElementById("main").style.display="flex";
+/* ===== FUNCTIONS ===== */
+function showDetail(e){
+ currentExam=e;
+ listBox.style.display="none";
+ detailBox.style.display="block";
 
- db.collection("questions")
-  .where("active","==",true)
-  .where("setCode","==",code)
-  .get()
-  .then(snap=>{
-   if(snap.size<30){
-    alert("Bộ đề chưa đủ 30 câu");
-    location.reload();
-    return;
-   }
-   let temp=[];
-   snap.forEach(d=>{
-    const q=d.data();
-    temp.push({
-     q:q.question,
-     img:q.image||"",
-     a:q.answers,
-     c:q.correct
-    });
-   });
-   temp.sort(()=>Math.random()-0.5);
-   questions=temp.slice(0,30);
-   answers=new Array(30).fill(null);
-   render();
-  });
+ dTitle.innerText=e.title;
+ dTarget.innerText=e.target;
+ dTotal.innerText=e.total;
+ dTime.innerText=e.time;
+ dRule.innerHTML=e.rule.map(x=>`<li>${x}</li>`).join("");
 }
 
-/* ===== RENDER ===== */
-function render(){
- const q=questions[current];
- let html=`<b>Câu ${current+1}/30:</b><br><br>${q.q}`;
- if(q.img){
-  html+=`<div style="text-align:center;margin:15px 0;">
-  <img src="${q.img}" style="max-width:100%;max-height:260px;"></div>`;
- }
- q.a.forEach((x,i)=>{
-  html+=`<label class="answer">
-   <input type="radio" name="ans"
-    ${answers[current]==i?"checked":""}
-    onchange="answers[${current}]=${i};updateMap()">
-   ${x}
-  </label>`;
- });
- questionBox.innerHTML=html;
- prevBtn.style.display=current>0?"block":"none";
- nextBtn.style.display=current<29?"block":"none";
- submitBtn.style.display=current==29?"block":"none";
- updateMap();
+function back(){
+ detailBox.style.display="none";
+ listBox.style.display="block";
 }
 
-function updateMap(){
- map.innerHTML="";
- answers.forEach((a,i)=>{
-  let bg="#fff";
-  if(i==current) bg="#e63946";
-  else if(a!==null) bg="#457b9d";
-  const d=document.createElement("div");
-  d.className="mapItem";
-  d.style.background=bg;
-  d.style.color=bg=="#fff"?"#000":"#fff";
-  d.innerText=i+1;
-  d.onclick=()=>{current=i;render();}
-  map.appendChild(d);
- });
+function startExam(){
+ localStorage.setItem("examId",currentExam.examId);
+ localStorage.setItem("totalQuestion",currentExam.total);
+ location.href="exam.html";
 }
-function nextQuestion(){current++;render();}
-function prevQuestion(){current--;render();}
 </script>
 
 </body>
