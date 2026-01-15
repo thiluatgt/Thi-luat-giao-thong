@@ -5,79 +5,43 @@
 <title>CHỌN BỘ ĐỀ KIỂM TRA</title>
 
 <style>
-body{
- margin:0;
- font-family:Arial,Helvetica,sans-serif;
- background:#eef2f6;
-}
+body{margin:0;font-family:Arial;background:#eef2f6;}
 header{
- background:#1d3557;
- color:white;
- padding:20px;
- text-align:center;
- font-size:22px;
- font-weight:bold;
+ background:#1d3557;color:white;
+ padding:20px;text-align:center;
+ font-size:22px;font-weight:bold;
 }
-.container{
- max-width:1200px;
- margin:40px auto;
- padding:0 20px;
-}
-.section{
- margin-bottom:40px;
-}
-.section h2{
- color:#1d3557;
- margin-bottom:20px;
-}
+.container{max-width:1200px;margin:40px auto;padding:0 20px;}
 .grid{
  display:grid;
  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
  gap:20px;
 }
 .card{
- background:white;
- padding:20px;
- border-radius:14px;
+ background:white;padding:20px;border-radius:14px;
  box-shadow:0 4px 15px rgba(0,0,0,.12);
- cursor:pointer;
- transition:.2s;
+ cursor:pointer;transition:.2s;
 }
 .card:hover{
  transform:translateY(-4px);
  box-shadow:0 6px 20px rgba(0,0,0,.18);
 }
-.card h3{
- margin-top:0;
- color:#1d3557;
-}
+.card h3{margin-top:0;color:#1d3557;}
 .card p{margin:6px 0;color:#555;}
 
 #detailBox{
- display:none;
- background:white;
- border-radius:14px;
- padding:25px;
- box-shadow:0 6px 20px rgba(0,0,0,.18);
- max-width:700px;
- margin:40px auto;
+ display:none;background:white;border-radius:14px;
+ padding:25px;box-shadow:0 6px 20px rgba(0,0,0,.18);
+ max-width:720px;margin:40px auto;
 }
-#detailBox h2{margin-top:0;color:#1d3557;}
-.infoRow{margin:10px 0;}
 .actions{
- margin-top:25px;
- display:flex;
- gap:15px;
- justify-content:center;
+ margin-top:25px;display:flex;
+ gap:15px;justify-content:center;
 }
 .btn{
- border:none;
- border-radius:10px;
- padding:14px 22px;
- font-size:16px;
- cursor:pointer;
- min-width:200px;
- color:white;
+ border:none;border-radius:10px;
+ padding:14px 22px;font-size:16px;
+ cursor:pointer;min-width:220px;color:white;
 }
 .btnStart{background:#2a9d8f;}
 .btnBack{background:#457b9d;}
@@ -86,86 +50,69 @@ header{
 
 <body>
 
-<header>
- HỆ THỐNG KIỂM TRA LUẬT GIAO THÔNG ĐƯỜNG BỘ
-</header>
+<header>HỆ THỐNG KIỂM TRA LUẬT GIAO THÔNG</header>
 
 <div class="container" id="listBox">
+ <h2 style="color:#1d3557">🚛 Kiểm tra lái xe ô tô quân sự</h2>
+ <div class="grid" id="setList"></div>
+</div>
 
- <!-- ===== MÔ TÔ ===== -->
- <div class="section">
-  <h2>🚦 Sát hạch lái xe mô tô quân sự</h2>
-  <div class="grid">
-   <div class="card" onclick="showDetail(moto)">
-    <h3>Bộ đề mô tô quân sự</h3>
-    <p>Đối tượng: Lái xe mô tô</p>
-    <p>Số câu: 25</p>
-    <p>Thời gian: 19 phút</p>
-   </div>
-  </div>
- </div>
+<div id="detailBox">
+ <h2 id="dName"></h2>
+ <p><b>Mã bộ đề:</b> <span id="dCode"></span></p>
+ <p><b>Mô tả:</b> <span id="dDesc"></span></p>
 
- <!-- ===== Ô TÔ ===== -->
- <div class="section">
-  <h2>🚛 Kiểm tra lái xe ô tô quân sự</h2>
-  <div class="grid">
-   <div class="card" onclick="showDetail(car1)">
-    <h3>Bộ đề số 1</h3>
-    <p>Số câu: 30</p>
-    <p>Thời gian: 30 phút</p>
-   </div>
-   <div class="card" onclick="showDetail(car2)">
-    <h3>Bộ đề số 2</h3>
-    <p>Số câu: 30</p>
-    <p>Thời gian: 30 phút</p>
-   </div>
-   <div class="card" onclick="showDetail(car3)">
-    <h3>Bộ đề số 3</h3>
-    <p>Số câu: 30</p>
-    <p>Thời gian: 30 phút</p>
-   </div>
-  </div>
+ <div class="actions">
+  <button class="btn btnStart" onclick="startExam()">▶ Bắt đầu làm bài</button>
+  <button class="btn btnBack" onclick="back()">↩ Quay lại</button>
  </div>
 </div>
 
-<!-- ===== CHI TIẾT ===== -->
-<div id="detailBox">
- <h2 id="dTitle"></h2>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
- <div class="infoRow"><b>Đối tượng:</b>22/25 điểm trở lên"
- ],
- examId:"moto"
-};
+<script>
+firebase.initializeApp({
+ apiKey:"AIzaSyBGivIEsyBLsLs0CqRvwmwceG26duZbWlM",
+ authDomain:"thi-luat-giao-thong.firebaseapp.com",
+ projectId:"thi-luat-giao-thong"
+});
+const db=firebase.firestore();
 
-const car1={
- title:"Bộ đề kiểm tra ô tô quân sự – Số 1",
- target:"Lái xe ô tô quân sự",
- total:30,
- time:"30 phút",
- rule:[
-  "Mỗi câu 1 điểm",
-  "Sai câu điểm liệt: Không đạt",
-  "Đạt từ 27/30 điểm trở lên"
- ],
- examId:"car1"
-};
+let currentSet=null;
 
-const car2={...car1,title:"Bộ đề kiểm tra ô tô quân sự – Số 2",examId:"car2"};
-const car3={...car1,title:"Bộ đề kiểm tra ô tô quân sự – Số 3",examId:"car3"};
+/* ===== LOAD QUESTION SETS ===== */
+db.collection("question_sets")
+ .where("active","==",true)
+ .get()
+ .then(snap=>{
+  if(snap.empty){
+   setList.innerHTML="<p>Chưa có bộ đề nào</p>";
+   return;
+  }
+  snap.forEach(doc=>{
+   const d=doc.data();
+   setList.insertAdjacentHTML("beforeend",`
+    <div class="card" onclick="showDetail('${doc.id}')">
+     <h3>${d.name}</h3>
+     <p><b>Mã:</b> ${d.code}</p>
+     <p>${d.description}</p>
+    </div>
+   `);
+  });
+ });
 
-let currentExam=null;
+function showDetail(id){
+ db.collection("question_sets").doc(id).get().then(doc=>{
+  currentSet={id,...doc.data()};
+  listBox.style.display="none";
+  detailBox.style.display="block";
 
-/* ===== FUNCTIONS ===== */
-function showDetail(e){
- currentExam=e;
- listBox.style.display="none";
- detailBox.style.display="block";
-
- dTitle.innerText=e.title;
- dTarget.innerText=e.target;
- dTotal.innerText=e.total;
- dTime.innerText=e.time;
- dRule.innerHTML=e.rule.map(x=>`<li>${x}</li>`).join("");
+  dName.innerText=currentSet.name;
+  dCode.innerText=currentSet.code;
+  dDesc.innerText=currentSet.description;
+ });
 }
 
 function back(){
@@ -174,8 +121,8 @@ function back(){
 }
 
 function startExam(){
- localStorage.setItem("examId",currentExam.examId);
- localStorage.setItem("totalQuestion",currentExam.total);
+ localStorage.setItem("questionSetId",currentSet.id);
+ localStorage.setItem("questionSetCode",currentSet.code);
  location.href="exam.html";
 }
 </script>
